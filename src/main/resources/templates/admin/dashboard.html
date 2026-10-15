@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center – LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-3')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-tools{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin:0 0 1rem;padding:1rem;background:#fff;border:1px solid var(--border);border-radius:14px}
+        .admin-tools input,.admin-tools select{font:500 .95rem var(--font-stack);padding:.7rem .85rem;border:1px solid #cbd5e1;border-radius:9px;color:var(--text-primary);background:#fff;min-height:44px}
+        .admin-tools input{flex:1;min-width:220px}.admin-tools select{min-width:160px}
+        .account-action{border:0;border-radius:9px;padding:.55rem .75rem;font:600 .85rem var(--font-stack);cursor:pointer;background:#fee2e2;color:#991b1b;white-space:nowrap}
+        .account-action.enable{background:#dcfce7;color:#166534}.account-action:disabled{cursor:not-allowed;opacity:.65}
+        .admin-notice{padding:.85rem 1rem;border-radius:12px;margin:0 0 1rem;font-weight:600}.admin-notice.success{background:#dcfce7;color:#166534}.admin-notice.error{background:#fee2e2;color:#991b1b}
+        .account-cell{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}.current-account{font-size:.78rem;color:#64748b}
+        .admin-empty{padding:1.2rem;text-align:center;color:#64748b}
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+        @media(max-width:600px){.admin-tools{align-items:stretch}.admin-tools input,.admin-tools select{width:100%;min-width:0}}
+    </style>
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('dashboard')}"></div>
+
+    <main class="main-container">
+        <!-- Admin Hero -->
+        <section class="portal-hero admin-hero-bg">
+            <div class="portal-hero-text">
+                <span class="role-pill">&#128737; Admin Control Center</span>
+                <h2>LexiBridge System Administration</h2>
+                <p>Review registered accounts, manage access, and monitor participation across the learning portal.</p>
+            </div>
+            <div class="portal-quick-stats">
+                <div class="quick-stat-box">
+                    <span class="q-num" th:text="${totalUsers}">4</span>
+                    <span class="q-label">Total Users</span>
+                </div>
+                <div class="quick-stat-box">
+                    <span class="q-num" th:text="${studentCount}">1</span>
+                    <span class="q-label">Students</span>
+                </div>
+                <div class="quick-stat-box">
+                    <span class="q-num" th:text="${teacherCount}">1</span>
+                    <span class="q-label">Teachers</span>
+                </div>
+                <div class="quick-stat-box">
+                    <span class="q-num" th:text="${parentCount}">1</span>
+                    <span class="q-label">Parents</span>
+                </div>
+                <div class="quick-stat-box">
+                    <span class="q-num" th:text="${adminCount}">1</span>
+                    <span class="q-label">Admins</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Status Bar -->
+        <section class="system-status-bar">
+            <div class="status-item">
+                <span class="status-dot green"></span>
+                <span>Database: <strong>Connected</strong></span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot green"></span>
+                <span>Security: <strong>Spring Security 6 (BCrypt Active)</strong></span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot green"></span>
+                <span>Role-Based Access Control: <strong>Enforced</strong></span>
+            </div>
+        </section>
+
+        <!-- User Accounts Table -->
+        <h3 class="section-title">Account Management</h3>
+        <div class="admin-notice" th:if="${adminNotice}" th:classappend="${noticeType == 'error'} ? ' error' : ' success'" role="status" th:text="${adminNotice}">Account updated.</div>
+        <section class="admin-tools" aria-label="Find and filter accounts">
+            <label class="sr-only" for="account-search">Search accounts</label>
+            <input id="account-search" type="search" placeholder="Search name, username, or email..." autocomplete="off">
+            <label class="sr-only" for="account-role-filter">Filter by role</label>
+            <select id="account-role-filter">
+                <option value="all">All roles</option>
+                <option value="ROLE_STUDENT">Students</option>
+                <option value="ROLE_PARENT">Parents</option>
+                <option value="ROLE_TEACHER">Teachers</option>
+                <option value="ROLE_ADMIN">Admins</option>
+            </select>
+            <span id="account-result-count" aria-live="polite" th:text="${totalUsers + ' accounts'}">0 accounts</span>
+        </section>
+        <section class="table-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Assigned Role</th>
+                            <th>Status</th>
+                            <th>Created On</th>
+                            <th>Access</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${users}" th:attr="data-role=${u.role.name()}">
+                            <td><strong th:text="${u.id}">1</strong></td>
+                            <td th:text="${u.fullName}">Anagha Krishnan</td>
+                            <td><code th:text="${u.username}">student</code></td>
+                            <td th:text="${u.email}">student@lexibridge.edu</td>
+                            <td>
+                                <span class="badge-role" th:classappend="${
+                                    u.role.name() == 'ROLE_STUDENT' ? 'role-student' :
+                                    (u.role.name() == 'ROLE_PARENT' ? 'role-parent' :
+                                    (u.role.name() == 'ROLE_TEACHER' ? 'role-teacher' : 'role-admin'))
+                                }" th:text="${u.role.name().replace('ROLE_', '')}">STUDENT</span>
+                            </td>
+                            <td>
+                                <span class="badge-status-active" th:if="${u.enabled}">Enabled</span>
+                                <span class="badge-status-disabled" th:unless="${u.enabled}">Disabled</span>
+                            </td>
+                            <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm') : 'N/A'}">2026-10-13</td>
+                            <td>
+                                <div class="account-cell">
+                                    <span class="current-account" th:if="${u.username == admin.username}">Current account</span>
+                                    <form th:unless="${u.username == admin.username}" method="post" th:action="@{/admin/users/{id}/status(id=${u.id})}">
+                                        <input type="hidden" name="enabled" th:value="${!u.enabled}">
+                                        <button type="submit" class="account-action" th:classappend="${!u.enabled} ? ' enable' : ''"
+                                                th:text="${u.enabled ? 'Disable' : 'Enable'}"
+                                                th:attr="aria-label=${(u.enabled ? 'Disable ' : 'Enable ') + u.username}">Disable</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="no-account-results" hidden><td colspan="8" class="admin-empty">No accounts match these filters.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+<script>
+    (() => {
+        const search = document.getElementById('account-search');
+        const role = document.getElementById('account-role-filter');
+        const rows = [...document.querySelectorAll('.data-table tbody tr[data-role]')];
+        const count = document.getElementById('account-result-count');
+        const empty = document.getElementById('no-account-results');
+        function filterAccounts() {
+            const term = search.value.trim().toLowerCase();
+            let visible = 0;
+            rows.forEach(row => {
+                const matches = row.textContent.toLowerCase().includes(term) && (role.value === 'all' || row.dataset.role === role.value);
+                row.hidden = !matches;
+                if (matches) visible++;
+            });
+            empty.hidden = visible !== 0;
+            count.textContent = `${visible} account${visible === 1 ? '' : 's'}`;
+        }
+        search.addEventListener('input', filterAccounts);
+        role.addEventListener('change', filterAccounts);
+    })();
+</script>
+</body>
+</html>

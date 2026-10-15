@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title>Speech Practice | LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-3')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/font-opendyslexic/latest/opendyslexic.css">
+    <style>
+        .speech-page{width:min(1080px,calc(100% - 2rem));margin:2rem auto 4rem;color:#172554;font-family:'Lexend',Arial,sans-serif;letter-spacing:.025em}
+        .speech-hero{background:linear-gradient(130deg,#eaf4ff,#f2efff);border:1px solid #dce8f8;border-radius:24px;padding:clamp(1.4rem,4vw,2.5rem);margin-bottom:1.4rem}
+        .speech-hero h2{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.2;margin:.55rem 0;color:#172554}.speech-hero p{max-width:700px;color:#475569;font-size:1.06rem}
+        .speech-tag{font-weight:700;color:#4f46a5}.speech-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr);gap:1.2rem;align-items:start}
+        .speech-card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:clamp(1rem,3vw,1.5rem);box-shadow:0 8px 24px #1e293b0b}
+        .speech-card h3{font-size:1.2rem;margin-bottom:.5rem}.speech-muted{color:#64748b}.speech-word{font-size:clamp(2.5rem,9vw,4.5rem);line-height:1.15;font-weight:700;letter-spacing:.08em;text-align:center;color:#1e3a8a;margin:1.2rem 0 .4rem;overflow-wrap:anywhere}
+        .speech-word[aria-hidden="true"]{filter:blur(8px);user-select:none}.speech-controls{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin:1rem 0}.speech-btn{border:0;border-radius:12px;padding:.8rem 1.1rem;min-height:48px;font:600 1rem 'Lexend',sans-serif;cursor:pointer}.speech-btn:focus-visible,.word-choice:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}.speech-primary{background:#24479b;color:white}.speech-secondary{background:#edf2ff;color:#243b75}.speech-mic{background:#087c70;color:white}.speech-btn:disabled{opacity:.6;cursor:not-allowed}
+        .speech-word-list{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}.word-choice{background:#f8fafc;border:1px solid #cbd5e1;color:#334155;border-radius:10px;padding:.55rem .75rem;font:500 .95rem 'Lexend',sans-serif;cursor:pointer;text-decoration:none}.word-choice[aria-pressed="true"],.word-choice.is-selected{background:#e8edff;border-color:#5268c5;color:#263c88}
+        .speech-status{min-height:1.6em;text-align:center;color:#475569}.speech-result{margin-top:1rem;padding:1rem;background:#f8fafc;border-radius:14px}.speech-result[hidden]{display:none}.speech-feedback{font-weight:600;text-align:center;margin:.7rem 0}.char-good{color:#087c70}.char-miss{color:#b42318;text-decoration:underline;text-decoration-style:wavy;text-decoration-thickness:2px}.word-analysis{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;font-size:1.7rem;font-weight:700;letter-spacing:.1em}.speech-score{font-size:1.8rem;font-weight:700;text-align:center;color:#24479b}.speech-stats{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1rem}.speech-stat{background:#f5f7ff;border-radius:14px;padding:.9rem;text-align:center}.speech-stat strong{display:block;font-size:1.5rem;color:#243b75}.speech-history{list-style:none;margin-top:.8rem}.speech-history li{border-top:1px solid #e2e8f0;padding:.75rem 0;display:flex;justify-content:space-between;gap:.6rem;font-size:.92rem}.speech-history time{color:#64748b;font-size:.8rem}.speech-note{font-size:.88rem;color:#64748b;margin-top:1rem}.speech-back{display:inline-block;color:#24479b;font-weight:600;text-decoration:none;margin-bottom:1rem}
+        @media(max-width:760px){.speech-layout{grid-template-columns:1fr}.speech-page{margin-top:1rem}.speech-hero{border-radius:18px}.speech-stats{grid-template-columns:1fr 1fr}}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    </style>
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('speech')}"></div>
+<main class="speech-page" th:attr="data-level=${selectedLevel}">
+    <a class="speech-back" th:href="@{/student/dashboard}">&larr; Dashboard</a>
+    <section class="speech-hero" aria-labelledby="speech-title">
+        <span class="speech-tag">SPEAK • LISTEN • GROW</span>
+        <h2 id="speech-title">Speech Practice</h2>
+        <p>Listen to a word, then say it into your microphone. Take your time, and try again whenever you’re ready.</p>
+    </section>
+    <div class="speech-layout">
+        <section class="speech-card" aria-labelledby="practice-heading">
+            <h3 id="practice-heading">Your word</h3>
+            <p class="speech-muted">Choose a word. Listen first, then read it aloud.</p>
+            <nav class="speech-word-list" aria-label="Choose a speech practice level">
+                <a class="word-choice" th:each="level : ${#numbers.sequence(1, 3)}" th:href="@{/student/speech(level=${level})}"
+                   th:classappend="${level == selectedLevel} ? ' is-selected' : ''" th:attr="aria-current=${level == selectedLevel ? 'page' : null}"
+                   th:text="${'Level ' + level + ' · ' + (level == 1 ? 'Starter' : level == 2 ? 'Growing' : 'Challenge')}">Level 1 · Starter</a>
+            </nav>
+            <p class="speech-muted" style="text-align:center;margin:.75rem auto;max-width:38rem" th:text="${levelFocus}">Practice words focus on commonly confused letters.</p>
+            <div id="target-word" class="speech-word" aria-live="polite" th:text="${words[0]}">sun</div>
+            <div class="speech-controls">
+                <button id="listen-button" class="speech-btn speech-secondary" type="button" aria-label="Listen to the word">Listen to word</button>
+                <button id="record-button" class="speech-btn speech-mic" type="button" aria-label="Start speaking practice">Start speaking</button>
+            </div>
+            <p id="speech-status" class="speech-status" role="status" aria-live="polite">Ready when you are.</p>
+            <div class="speech-word-list" aria-label="Practice words">
+                <button class="word-choice" type="button" th:each="word,iter : ${words}" th:text="${word}" th:attr="data-word=${word},aria-pressed=${iter.index == 0}">sun</button>
+            </div>
+            <p class="speech-note">Microphone access is handled by your browser. Speech recognition works best in a quiet space.</p>
+            <section id="speech-result" class="speech-result" hidden aria-labelledby="result-heading">
+                <h3 id="result-heading">Your practice result</h3>
+                <div id="accuracy-score" class="speech-score" aria-live="polite"></div>
+                <p class="speech-muted" style="text-align:center">Expected word and what we heard</p>
+                <div class="word-analysis"><span id="expected-display" aria-label="Expected word"></span><span id="heard-display" aria-label="What was heard"></span></div>
+                <p id="feedback" class="speech-feedback" aria-live="polite"></p>
+                <div class="speech-controls"><button id="retry-button" class="speech-btn speech-primary" type="button">Try again</button></div>
+            </section>
+        </section>
+        <aside class="speech-card" aria-labelledby="progress-heading">
+            <h3 id="progress-heading">Your progress</h3>
+            <p class="speech-muted">Every attempt is a step forward.</p>
+            <div class="speech-stats" style="margin-top:1rem">
+                <div class="speech-stat"><strong id="attempt-count" th:text="${attemptCount}">0</strong><span>Attempts</span></div>
+                <div class="speech-stat"><strong id="average-accuracy" th:text="${averageAccuracy + '%'}">0%</strong><span>Average accuracy</span></div>
+            </div>
+            <h4>Recent practice</h4>
+            <ul id="speech-history" class="speech-history">
+                <li th:each="attempt : ${history}"><span><strong th:text="${attempt.targetWord}">sun</strong><br><small th:text="${'Level ' + attempt.level + ' · ' + attempt.recognizedText}">heard word</small></span><span><b th:text="${attempt.accuracy + '%'}">90%</b><br><time th:text="${#temporals.format(attempt.completedAt, 'MMM d, h:mm a')}">Today</time></span></li>
+                <li th:if="${#lists.isEmpty(history)}" class="speech-muted">Your practice attempts will appear here.</li>
+            </ul>
+        </aside>
+    </div>
+</main>
+<script th:src="@{/js/speech-practice.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <header th:fragment="appHeader(activePage)" class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <a th:href="@{/}" class="brand-link">
+                    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                        <defs>
+                            <linearGradient id="lexibridge-mark-gradient" x1="5" y1="4" x2="43" y2="45" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#67e8f9"/>
+                                <stop offset="1" stop-color="#a78bfa"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="48" height="48" rx="15" fill="url(#lexibridge-mark-gradient)"/>
+                        <path d="M10 14c5.5-1.7 10.3-.8 14 2.1V36c-3.7-3-8.5-3.8-14-2.1V14Zm28 0c-5.5-1.7-10.3-.8-14 2.1V36c3.7-3 8.5-3.8 14-2.1V14Z" fill="#0f172a" fill-opacity=".92" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M12.5 27.5c4.2-7.8 8-10.5 11.5-10.5s7.3 2.7 11.5 10.5M12.5 28h23M15 31h5m8 0h5" fill="none" stroke="#67e8f9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="brand-titles">
+                        <h1>LexiBridge</h1>
+                        <p class="subtitle">Dyslexia-Friendly Learning Portal</p>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="main-nav" sec:authorize="isAuthenticated()">
+                <!-- Student Nav Links -->
+                <ul class="nav-links" sec:authorize="hasRole('STUDENT')">
+                    <li><a th:href="@{/student/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'nav-active' : ''">Dashboard</a></li>
+                    <li><a th:href="@{/student/reading}" th:classappend="${activePage == 'reading'} ? 'nav-active' : ''">Smart Reading</a></li>
+                    <li><a th:href="@{/student/games}" th:classappend="${activePage == 'games'} ? 'nav-active' : ''">Games</a></li>
+                    <li><a th:href="@{/student/speech}" th:classappend="${activePage == 'speech'} ? 'nav-active' : ''">Speech Practice</a></li>
+                    <li><a th:href="@{/student/heatmap}" th:classappend="${activePage == 'heatmap'} ? 'nav-active' : ''">Reading Patterns</a></li>
+                </ul>
+
+                <!-- Parent Nav Links -->
+                <ul class="nav-links" sec:authorize="hasRole('PARENT')">
+                    <li><a th:href="@{/parent/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'nav-active' : ''">Parent Dashboard</a></li>
+                    <li><a th:href="@{/progress}" th:classappend="${activePage == 'progress'} ? 'nav-active' : ''">Weekly Progress</a></li>
+                    <li><a th:href="@{/feedback}" th:classappend="${activePage == 'feedback'} ? 'nav-active' : ''">Feedback <span class="feedback-nav-badge" data-feedback-unread-badge aria-live="polite" th:classappend="${feedbackUnreadCount == 0} ? ' is-hidden' : ''" th:text="${feedbackUnreadCount}" th:attr="aria-label=${feedbackUnreadCount + ' unread feedback messages'}">0</span></a></li>
+                </ul>
+
+                <!-- Teacher Nav Links -->
+                <ul class="nav-links" sec:authorize="hasRole('TEACHER')">
+                    <li><a th:href="@{/teacher/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'nav-active' : ''">Teacher Dashboard</a></li>
+                    <li><a th:href="@{/progress}" th:classappend="${activePage == 'progress'} ? 'nav-active' : ''">Weekly Progress</a></li>
+                    <li><a th:href="@{/feedback}" th:classappend="${activePage == 'feedback'} ? 'nav-active' : ''">Feedback <span class="feedback-nav-badge" data-feedback-unread-badge aria-live="polite" th:classappend="${feedbackUnreadCount == 0} ? ' is-hidden' : ''" th:text="${feedbackUnreadCount}" th:attr="aria-label=${feedbackUnreadCount + ' unread feedback messages'}">0</span></a></li>
+                </ul>
+
+                <!-- Admin Nav Links -->
+                <ul class="nav-links" sec:authorize="hasRole('ADMIN')">
+                    <li><a th:href="@{/admin/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'nav-active' : ''">Admin Control Center</a></li>
+                </ul>
+            </nav>
+
+            <div class="feedback-notification-toast" data-feedback-toast role="status" aria-live="polite" hidden></div>
+            <script sec:authorize="hasAnyRole('PARENT', 'TEACHER')" th:src="@{/js/feedback-notifications.js(v='1')}" defer></script>
+
+            <div class="header-user-section">
+                <button sec:authorize="hasAnyRole('PARENT', 'TEACHER')" class="header-theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to night mode">
+                    <span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Night mode</span>
+                </button>
+                <!-- Logged in state -->
+                <div sec:authorize="isAuthenticated()" class="user-profile-badge">
+                    <div class="user-meta">
+                        <span class="user-name" sec:authentication="name">User</span>
+                        <span class="user-role" sec:authentication="principal.authorities">Role</span>
+                    </div>
+                    <form th:action="@{/logout}" method="post" class="logout-form">
+                        <button type="submit" class="btn-logout" title="Sign out of LexiBridge">Logout</button>
+                    </form>
+                </div>
+
+                <!-- Anonymous state -->
+                <div sec:authorize="isAnonymous()" class="auth-buttons">
+                    <a th:href="@{/login}" class="btn-login-link">Log In</a>
+                    <a th:href="@{/register}" class="btn-register-link">Register</a>
+                </div>
+            </div>
+        </div>
+        <script th:src="@{/js/theme-mode.js(v='1')}" defer></script>
+    </header>
+</body>
+</html>

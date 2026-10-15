@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${quiz != null ? quiz.title + ' – Quiz' : 'Quiz – LexiBridge'}">Quiz – LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-3')}"/>
+    <style>
+        .quiz-hero {
+            background: linear-gradient(135deg,#1a2a6c 0%,#5c5f9e 60%,#b8b5ff 100%);
+            color:#fff; padding:2rem; border-radius:18px; margin-bottom:2rem; text-align:center;
+        }
+        .quiz-hero h1 { font-size:1.7rem; margin:0 0 .3rem; }
+        .quiz-hero p  { opacity:.85; margin:0; font-size:.95rem; }
+
+        .progress-wrap { background:#e8eaf6; border-radius:50px; height:12px; margin-bottom:1.5rem; overflow:hidden; }
+        .progress-fill { height:12px; border-radius:50px; background:linear-gradient(90deg,#1a2a6c,#b8b5ff); transition:width .4s ease; }
+
+        .question-block {
+            background:var(--card-bg); border-radius:18px; padding:2rem;
+            box-shadow:0 4px 20px rgba(0,0,0,.07); margin-bottom:1.5rem;
+        }
+        .question-num {
+            font-size:.8rem; font-weight:700; text-transform:uppercase;
+            color:var(--accent-lavender); letter-spacing:.06em; margin-bottom:.6rem;
+        }
+        .question-text {
+            font-size:1.1rem; color:var(--accent-navy); font-weight:600;
+            line-height:1.6; margin-bottom:1.2rem;
+        }
+        .options-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.7rem; }
+        .option-label {
+            display:flex; align-items:center; gap:1rem;
+            background:#f5f7ff; border:2px solid #e8eaf6; border-radius:12px;
+            padding:.8rem 1.2rem; cursor:pointer;
+            transition:background .2s, border-color .2s;
+        }
+        .option-label:hover { background:#e8eaf6; border-color:#9fa8da; }
+        .option-label input[type="radio"] { display:none; }
+        .option-label input[type="radio"]:checked + .option-dot { background:var(--accent-lavender); }
+        .option-label input[type="radio"]:checked ~ .option-text { color:var(--accent-navy); font-weight:700; }
+        .option-label:has(input:checked) { background:#e8eaf6; border-color:var(--accent-lavender); }
+        .option-dot {
+            width:20px; height:20px; border-radius:50%; border:2.5px solid #9fa8da;
+            flex-shrink:0; transition:background .15s;
+        }
+        .option-text { font-size:.97rem; color:var(--text-secondary); }
+
+        .quiz-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+        .btn-submit {
+            background:linear-gradient(135deg,#1a2a6c,#5c5f9e);
+            color:#fff; border:none; border-radius:14px;
+            padding:.85rem 2.5rem; font-size:1rem; font-weight:700;
+            cursor:pointer; transition:opacity .2s;
+        }
+        .btn-submit:hover { opacity:.87; }
+        .btn-submit:disabled { opacity:.45; cursor:not-allowed; }
+
+        /* Quiz result popup */
+        .result-overlay {
+            display:none; position:fixed; inset:0; z-index:9999;
+            align-items:center; justify-content:center; padding:1.25rem;
+            background:rgba(15,23,42,.68); backdrop-filter:blur(5px);
+        }
+        .result-overlay.active { display:flex; }
+        .result-box {
+            position:relative; overflow:hidden; width:min(100%,460px);
+            padding:2.4rem 2.25rem 2rem; border:1px solid var(--border);
+            border-radius:26px; background:var(--bg-card); color:var(--text-primary);
+            text-align:center; box-shadow:0 24px 70px rgba(15,23,42,.3);
+            animation:resultPop .32s cubic-bezier(.2,.8,.2,1);
+        }
+        .result-box::before { content:""; position:absolute; inset:0 0 auto; height:7px; background:linear-gradient(90deg,#38bdf8,#a78bfa,#6ee7b7); }
+        @keyframes resultPop { from{transform:translateY(12px) scale(.97);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+        .result-box .emoji {
+            display:grid; place-items:center; width:78px; height:78px; margin:0 auto 1rem;
+            border:1px solid #ddd6fe; border-radius:24px; background:linear-gradient(145deg,#eff6ff,#f5f3ff);
+            font-size:2.65rem;
+        }
+        .result-box h2 { color:var(--text-primary); font-size:1.65rem; line-height:1.25; margin:0 0 .45rem; }
+        .result-box .percent {
+            display:inline-block; margin:.55rem 0 .4rem; padding:.18rem .85rem;
+            border-radius:999px; background:var(--lavender); color:#5b4bb7;
+            font-size:2.4rem; line-height:1.3; font-weight:800; font-variant-numeric:tabular-nums;
+        }
+        .result-msg { color:var(--text-secondary); font-size:1rem; line-height:1.6; margin:.25rem 0 0; }
+        .result-btns { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-top:1.65rem; }
+        .btn-back {
+            background:var(--bg-main); color:var(--text-primary); border:1px solid var(--border); border-radius:14px;
+            padding:.8rem 1rem; font:700 .95rem var(--font-stack); cursor:pointer; transition:transform .15s,background .15s;
+        }
+        .btn-reading {
+            background:linear-gradient(135deg,#1e3a8a,#6253bd); color:#fff; border:0; border-radius:14px;
+            padding:.8rem 1rem; font:700 .95rem var(--font-stack); cursor:pointer; box-shadow:0 5px 14px rgba(30,58,138,.22); transition:transform .15s,filter .15s;
+        }
+        .btn-back:hover,.btn-reading:hover { transform:translateY(-2px); }
+        .btn-reading:hover { filter:brightness(1.08); }
+        .btn-back:focus-visible,.btn-reading:focus-visible { outline:3px solid #38bdf8; outline-offset:3px; }
+        body.theme-dark .result-box { border-color:#334155; background:#1e293b; }
+        body.theme-dark .result-box h2 { color:#f1f5f9; }
+        body.theme-dark .result-box .emoji { border-color:#51477d; background:linear-gradient(145deg,#25354c,#332d50); }
+        body.theme-dark .result-box .percent { background:#37305b; color:#c4b5fd; }
+        body.theme-dark .btn-back { border-color:#475569; background:#263449; color:#e2e8f0; }
+        @media (max-width:480px) {
+            .result-box { padding:2rem 1.15rem 1.25rem; border-radius:22px; }
+            .result-box h2 { font-size:1.4rem; }
+            .result-box .emoji { width:68px; height:68px; border-radius:20px; font-size:2.3rem; }
+            .result-btns { grid-template-columns:1fr; }
+        }
+
+        .no-quiz { text-align:center; color:var(--text-secondary); padding:4rem; font-size:1.1rem; }
+    </style>
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('dashboard')}"></div>
+
+<main class="container" style="padding:2rem 1rem;">
+
+    <!-- Hero -->
+    <div class="quiz-hero" th:if="${quiz != null}">
+        <h1 th:text="${quiz.title}">Quiz Title</h1>
+        <p th:text="${'About: ' + (quiz.material != null ? quiz.material.title : 'General')}">About:</p>
+    </div>
+
+    <div class="no-quiz" th:unless="${quiz != null}">
+        <p>📭 This quiz is not available right now.</p>
+        <a href="/student/reading" style="color:var(--accent-lavender); font-weight:700;">← Back to Library</a>
+    </div>
+
+    <!-- Quiz form -->
+    <div th:if="${quiz != null}">
+        <!-- Progress -->
+        <div class="progress-wrap">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <p style="text-align:right; font-size:.85rem; color:var(--text-secondary); margin-bottom:1rem;"
+           id="progress-label">0 / <span th:text="${quiz.questions.size()}">0</span> answered</p>
+
+        <!-- Questions -->
+        <div id="questions-container">
+            <div th:each="q, iterStat : ${quiz.questions}" class="question-block"
+                 th:attr="data-qid=${q.id}">
+                <div class="question-num" th:text="${'Question ' + (iterStat.index + 1) + ' of ' + quiz.questions.size()}">Q1</div>
+                <div class="question-text" th:text="${q.questionText}">Question text here</div>
+                <ul class="options-list">
+                    <li th:each="opt, optStat : ${q.options}">
+                        <label class="option-label">
+                            <input type="radio"
+                                   th:name="'q_' + ${q.id}"
+                                   th:value="${optStat.index}"
+                                   onchange="trackAnswer(this)"/>
+                            <div class="option-dot"></div>
+                            <span class="option-text" th:text="${opt}">Option text</span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="quiz-footer">
+            <span style="font-size:.9rem; color:var(--text-secondary);">Select an answer for each question before submitting.</span>
+            <button class="btn-submit" id="submit-btn" onclick="submitQuiz()" disabled>Submit Quiz</button>
+        </div>
+    </div>
+
+</main>
+
+<!-- Result Modal -->
+<div class="result-overlay" id="result-overlay">
+    <div class="result-box" role="dialog" aria-modal="true" aria-labelledby="result-heading" aria-describedby="result-msg">
+        <div class="emoji" id="result-emoji">🎉</div>
+        <h2 id="result-heading">Well done!</h2>
+        <div class="percent" id="result-percent"></div>
+        <p class="result-msg" id="result-msg"></p>
+        <div class="result-btns">
+            <button class="btn-back" onclick="window.location='/student/reading'">📚 Back to Library</button>
+            <button class="btn-reading" onclick="window.location='/student/games'">🎮 Play Games</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+var QUIZ_ID       = /*[[${quiz != null ? quiz.id : 0}]]*/ 0;
+var TOTAL_Q       = /*[[${quiz != null ? quiz.questions.size() : 0}]]*/ 0;
+var answers       = {};      // { questionId: chosenIndex }
+var answeredCount = 0;
+
+function trackAnswer(radio) {
+    // Extract qid from name "q_123"
+    var qid = radio.name.split('_')[1];
+    if (!Object.prototype.hasOwnProperty.call(answers, qid)) answeredCount++;
+    answers[qid] = parseInt(radio.value);
+    updateProgress();
+}
+
+function updateProgress() {
+    var pct = TOTAL_Q > 0 ? (answeredCount / TOTAL_Q) * 100 : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = answeredCount + ' / ' + TOTAL_Q + ' answered';
+    document.getElementById('submit-btn').disabled = (answeredCount < TOTAL_Q);
+}
+
+function submitQuiz() {
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Checking your answers...';
+
+    // The backend expects a map from question ID to the selected letter (A-D).
+    var answerMap = {};
+    Object.keys(answers).forEach(function(qid) {
+        answerMap[qid] = String.fromCharCode(65 + answers[qid]);
+    });
+
+    fetch('/student/quiz/submit', {
+        method: 'POST',
+        headers: (function() {
+            var headers = { 'Content-Type': 'application/json' };
+            var token = document.querySelector('meta[name="_csrf"]');
+            var header = document.querySelector('meta[name="_csrf_header"]');
+            if (token && header) headers[header.content] = token.content;
+            return headers;
+        })(),
+        body: JSON.stringify({ quizId: QUIZ_ID, answers: answerMap })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showResult(data.score, data.totalQuestions);
+        } else {
+            alert('Could not submit quiz: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            btn.textContent = 'Submit Quiz';
+        }
+    })
+    .catch(function(e) {
+        alert('Network error: ' + e);
+        btn.disabled = false;
+        btn.textContent = 'Submit Quiz';
+    });
+}
+
+function showResult(score, total) {
+    var pct = total > 0 ? (score / total) * 100 : 0;
+    var pctRound = Math.round(pct);
+    document.getElementById('result-percent').textContent = pctRound + '%';
+    document.getElementById('result-msg').textContent =
+        'You got ' + score + ' out of ' + total + ' questions correct.';
+
+    if (pctRound >= 80) {
+        document.getElementById('result-emoji').textContent = '🏆';
+        document.getElementById('result-heading').textContent = 'Excellent work!';
+    } else if (pctRound >= 50) {
+        document.getElementById('result-emoji').textContent = '😊';
+        document.getElementById('result-heading').textContent = 'Good effort!';
+    } else {
+        document.getElementById('result-emoji').textContent = '💪';
+        document.getElementById('result-heading').textContent = 'Keep practising!';
+    }
+    document.getElementById('result-overlay').classList.add('active');
+}
+/*]]>*/
+</script>
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>

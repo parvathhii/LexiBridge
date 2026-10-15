@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-3')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('dashboard')}"></div>
+<main class="teacher-wrap teacher-dashboard-page">
+    <section class="hero">
+        <div><div class="eyebrow">Teacher workspace</div><h1>Welcome, <span th:text="${teacher.fullName}">Teacher</span></h1>
+            <p>Choose a learner to review their reading, speech, games, and quiz progress.</p></div>
+        <div class="stats"><div class="stat"><strong th:text="${totalStudents}">0</strong><span>Students</span></div>
+            <div class="stat"><strong th:text="${assignedClassesCount}">0</strong><span>Classes</span></div>
+            <div class="stat"><strong th:text="${readingMaterialsCount}">0</strong><span>Materials</span></div>
+            <div class="stat"><strong th:text="${activeQuizzesCount}">0</strong><span>Quizzes</span></div></div>
+    </section>
+    <div class="notice" th:if="${message != null}" th:text="${message}" role="status"></div>
+    <div class="layout">
+        <aside class="panel roster-panel"><h2>My students</h2><p class="sub" th:if="${#lists.isEmpty(students)}">No students are assigned to your account yet.</p>
+            <nav class="roster" aria-label="Assigned students">
+                <a th:each="s : ${students}" th:href="@{/teacher/dashboard(studentId=${s.student.id})}"
+                   th:classappend="${selected != null and selected.student.id == s.student.id} ? ' active' : ''">
+                    <strong th:text="${s.student.fullName}">Student</strong><div class="sub" th:text="${s.classroom}">Class</div>
+                    <span class="pill" th:text="${'Level ' + s.readingLevel + ' - ' + s.readingCount + ' reading sessions'}">Level</span>
+                </a>
+            </nav>
+            <details class="link-student-panel">
+                <summary>Link a registered student</summary>
+                <p>Enter the username or email they used to create their student account. Their saved progress will appear in your list.</p>
+                <form th:action="@{/teacher/students}" method="post">
+                    <label for="studentAccount">Student username or email</label>
+                    <input id="studentAccount" name="studentAccount" type="text" maxlength="100" autocomplete="off" required placeholder="e.g. anagha or learner@example.com">
+                    <button class="button alt" type="submit">Add student</button>
+                </form>
+            </details>
+        </aside>
+        <div class="maincol" th:if="${selectedStudent != null}">
+            <section class="card student-head"><div><div class="eyebrow">Individual progress</div><h2 th:text="${selectedStudent.fullName}">Student Name</h2>
+                <p th:text="${selected.classroom + ' - Reading level ' + selected.readingLevel}">Class - Level</p></div>
+                <form class="student-picker" th:action="@{/teacher/dashboard}" method="get" aria-label="Choose a student to analyse">
+                    <label for="teacherStudentPicker">Choose student</label>
+                    <select id="teacherStudentPicker" name="studentId">
+                        <option th:each="s : ${students}" th:value="${s.student.id}" th:selected="${s.student.id == selectedStudent.id}"
+                                th:text="${s.student.fullName + ' - ' + s.classroom}">Student</option>
+                    </select>
+                    <button class="button light" type="submit">View progress</button>
+                </form>
+                <a class="button csv-download" th:href="@{/teacher/reports/{id}.csv(id=${selectedStudent.id})}" aria-label="Download progress as CSV">
+                    <span class="csv-download-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg></span>
+                    <span>Download progress CSV</span>
+                </a></section>
+            <section class="metric-grid" aria-label="Progress averages">
+                <div class="metric"><strong th:text="${readingAverage + '%'}">0%</strong><span>Reading accuracy</span></div>
+                <div class="metric"><strong th:text="${speechAverage + '%'}">0%</strong><span>Speech accuracy</span></div>
+                <div class="metric"><strong th:text="${gameAverage + '%'}">0%</strong><span>Game accuracy</span></div>
+                <div class="metric"><strong th:text="${quizAverage + '%'}">0%</strong><span>Quiz average</span></div>
+            </section>
+            <section class="card teacher-weekly-card" aria-labelledby="teacher-weekly-heading"><h2 id="teacher-weekly-heading">Weekly performance</h2><p class="sub">Average score across recorded reading, speech, games, and quizzes.</p>
+                <p class="empty" th:if="${#lists.isEmpty(weekly)}">No learning activity recorded yet. The chart will update as this student practises.</p>
+                <div class="teacher-weekly-chart" role="list" aria-label="Weekly learning performance" th:if="${!#lists.isEmpty(weekly)}">
+                    <div class="teacher-week-row" role="listitem" th:each="week : ${weekly}" th:attr="aria-label=${week.label + ': ' + week.score + ' percent average from ' + week.sessions + ' activities'}">
+                        <span class="teacher-week-label" th:text="${week.label}">Week</span>
+                        <div class="teacher-week-track" aria-hidden="true"><span th:style="|width:${week.score}%;|"></span></div>
+                        <strong class="teacher-week-score" th:text="${week.score + '%'}">0%</strong>
+                        <span class="teacher-week-count" th:text="${week.sessions + ' activities'}">0 activities</span>
+                    </div>
+                </div></section>
+            <div class="section-grid">
+                <section class="card"><h2>Reading patterns</h2><p class="sub">Practice signals from reading sessions; this view tracks learning patterns and is not diagnostic.</p>
+                    <div class="heat-list" th:if="${!#lists.isEmpty(heatmap)}">
+                        <div class="heat-row" th:each="item : ${heatmap}"><span th:text="${item.pattern}">b/d</span><strong th:text="${item.count}">0</strong>
+                            <div class="heat-track"><i th:style="|width:${T(java.lang.Math).min(100, item.count * 12)}%;|"></i></div></div>
+                    </div><p class="empty" th:if="${#lists.isEmpty(heatmap)}">No reading error patterns recorded yet.</p>
+                    <h3 style="margin-top:18px">Words to revisit</h3><div class="word-tags" th:if="${!#lists.isEmpty(difficultWords)}">
+                        <span class="word-tag" th:each="word : ${difficultWords}" th:text="${word.word + ' · ' + word.count}">word</span></div>
+                    <p class="empty" th:if="${#lists.isEmpty(difficultWords)}">Difficult words will appear as practice data is recorded.</p>
+                </section>
+                <section class="card"><h2>Assigned activities</h2>
+                    <div class="activity" th:each="activity : ${activities}"><strong th:text="${activity.title}">Practice</strong>
+                        <span class="pill" th:text="${activity.activityType}">PRACTICE</span><div class="sub" th:text="${activity.instructions}">Instructions</div>
+                        <div class="sub" th:if="${activity.dueDate != null}" th:text="${'Due ' + activity.dueDate}">Due date</div></div>
+                    <p class="empty" th:if="${#lists.isEmpty(activities)}">No activities assigned to this learner yet.</p>
+                </section>
+            </div>
+            <div class="section-grid">
+                <section class="card"><h2>Recent reading sessions</h2><div class="scroll"><table class="data"><thead><tr><th>Material</th><th>Words</th><th>Accuracy</th><th>Date</th></tr></thead>
+                    <tbody><tr th:each="readingSession : ${readingSessions}"><td th:text="${readingSession.material.title}">Story</td><td th:text="${readingSession.wordsRead}">0</td>
+                        <td th:text="${readingSession.readingAccuracy == null ? '—' : readingSession.readingAccuracy + '%'}">—</td><td th:text="${#temporals.format(readingSession.createdAt, 'MMM d')}">Date</td></tr>
+                    <tr th:if="${#lists.isEmpty(readingSessions)}"><td colspan="4" class="muted">No reading sessions yet.</td></tr></tbody></table></div></section>
+                <section class="card"><h2>Speech practice</h2><div class="scroll"><table class="data"><thead><tr><th>Word</th><th>Heard</th><th>Accuracy</th><th>Date</th></tr></thead>
+                    <tbody><tr th:each="attempt : ${speechAttempts}"><td th:text="${attempt.targetWord}">word</td><td th:text="${attempt.recognizedText}">recognized</td>
+                        <td th:text="${attempt.accuracy + '%'}">0%</td><td th:text="${#temporals.format(attempt.completedAt, 'MMM d')}">Date</td></tr>
+                    <tr th:if="${#lists.isEmpty(speechAttempts)}"><td colspan="4" class="muted">No speech attempts yet.</td></tr></tbody></table></div></section>
+                <section class="card"><h2>Games played</h2><div class="scroll"><table class="data"><thead><tr><th>Game</th><th>Score</th><th>Accuracy</th></tr></thead>
+                    <tbody><tr th:each="attempt : ${gameAttempts}"><td th:text="${attempt.gameCode}">Game</td><td th:text="${attempt.score}">0</td><td th:text="${attempt.accuracy + '%'}">0%</td></tr>
+                    <tr th:if="${#lists.isEmpty(gameAttempts)}"><td colspan="3" class="muted">No game scores yet.</td></tr></tbody></table></div></section>
+                <section class="card"><h2>Quiz results</h2><div class="scroll"><table class="data"><thead><tr><th>Quiz</th><th>Score</th><th>Date</th></tr></thead>
+                    <tbody><tr th:each="attempt : ${quizAttempts}"><td th:text="${attempt.quiz.title}">Quiz</td><td th:text="${attempt.percentage + '%'}">0%</td>
+                        <td th:text="${#temporals.format(attempt.completedAt, 'MMM d')}">Date</td></tr><tr th:if="${#lists.isEmpty(quizAttempts)}"><td colspan="3" class="muted">No quiz results yet.</td></tr></tbody></table></div></section>
+            </div>
+        </div>
+        <section class="card maincol" th:if="${selectedStudent == null}"><h2>Start with your class</h2><p class="muted">Students linked to your teacher account appear here with progress from their saved practice sessions.</p></section>
+    </div>
+    <section class="actions" th:if="${selectedStudent != null}">
+        <div class="card form-card"><h2><span class="small-icon" aria-hidden="true">&#128214;</span>Reading material</h2><p class="helper">Add an accessible reading passage to the shared library. You can assign it to a learner below.</p>
+            <form th:action="@{/teacher/materials}" method="post"><label>Title<input name="title" required maxlength="150"></label>
+                <label>Passage<textarea name="content" required></textarea></label><label>Short description<input name="description" maxlength="255"></label>
+                <div class="pair"><label>Category<input name="category" value="Story"></label><label>Level<select name="readingLevel"><option th:each="level : ${#numbers.sequence(1,5)}" th:value="${level}" th:text="${level}">1</option></select></label></div>
+                <div class="pair"><label>Focus pattern<input name="targetPhonemes" placeholder="b / d"></label><label>Minutes<input name="minutes" type="number" min="1" max="120" value="3"></label></div>
+                <button class="button alt" type="submit">Save reading material</button></form>
+        </div>
+        <div class="card form-card"><h2><span class="small-icon" aria-hidden="true">&#9998;</span>Create a quiz</h2><p class="helper">Create a multiple-choice quiz item with an optional reading passage link.</p>
+            <form th:action="@{/teacher/quizzes}" method="post"><label>Quiz title<input name="title" required maxlength="150"></label>
+                <label>Question<input name="question" required maxlength="300"></label>
+                <div class="pair"><label>Option A<input name="optionA" required></label><label>Option B<input name="optionB" required></label></div>
+                <div class="pair"><label>Option C<input name="optionC" required></label><label>Option D<input name="optionD" required></label></div>
+                <div class="pair"><label>Correct option<select name="correctOption"><option>A</option><option>B</option><option>C</option><option>D</option></select></label>
+                    <label>Level<select name="readingLevel"><option th:each="level : ${#numbers.sequence(1,5)}" th:value="${level}" th:text="${level}">1</option></select></label></div>
+                <label>Link reading material<select name="materialId"><option value="">No linked material</option><option th:each="material : ${materials}" th:value="${material.id}" th:text="${material.title}">Story</option></select></label>
+                <label>Explanation (optional)<input name="explanation" maxlength="255"></label><button class="button alt" type="submit">Create quiz</button></form>
+        </div>
+        <div class="card form-card"><h2><span class="small-icon" aria-hidden="true">&#127919;</span>Assign activity</h2><p class="helper">Set a personal practice goal, assign a reading, or remind a student to complete a quiz.</p>
+            <form th:action="@{/teacher/activities}" method="post"><label>Student<select name="studentId" required><option th:each="s : ${students}" th:value="${s.student.id}" th:selected="${s.student.id == selectedStudent.id}" th:text="${s.student.fullName + ' · ' + s.classroom}">Student</option></select></label>
+                <label>Activity name<input name="title" required maxlength="150" placeholder="Read aloud for 10 minutes"></label>
+                <div class="pair"><label>Type<select name="activityType"><option value="PRACTICE">Practice</option><option value="READING">Reading</option><option value="QUIZ">Quiz</option></select></label><label>Due date<input type="date" name="dueDate"></label></div>
+                <label>Instructions<textarea name="instructions" maxlength="500" placeholder="Add a kind, clear next step"></textarea></label>
+                <label>Reading material<select name="materialId"><option value="">No linked material</option><option th:each="material : ${materials}" th:value="${material.id}" th:text="${material.title}">Story</option></select></label>
+                <label>Quiz<select name="quizId"><option value="">No linked quiz</option><option th:each="quiz : ${quizzes}" th:value="${quiz.id}" th:text="${quiz.title}">Quiz</option></select></label>
+                <button class="button alt" type="submit">Assign activity</button></form>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+</body></html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Learning Portal - LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-1')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('dashboard')}"></div>
+
+    <main class="main-container">
+        <!-- Student Welcome Hero -->
+        <section class="student-hero">
+            <div class="student-hero-content">
+                <div class="level-pill">
+                    <span>&#11088; Reading Level <strong th:text="${readingLevel}">2</strong></span>
+                    <span class="grade-tag" th:text="${profile.gradeLevel}">Grade 3</span>
+                </div>
+                <h2>Hi <span th:text="${user.fullName}">Anagha Krishnan</span>! Ready to explore today? &#128640;</h2>
+                <p>Track your reading milestones, play dyslexia-friendly phonics games, and practice your speech skills.</p>
+            </div>
+            <div class="student-hero-action">
+                <a th:href="@{/student/reading}" class="btn-action-primary">&#128214; Open Smart Reading Mode</a>
+            </div>
+        </section>
+
+        <section class="student-link-card" aria-labelledby="parent-link-title" th:if="${!parentLinked and profile.parentLinkCode != null}">
+            <div>
+                <h3 id="parent-link-title">Connect your parent</h3>
+                <p>Share this one-time code with your parent so they can connect to your learning progress.</p>
+            </div>
+            <code th:text="${profile.parentLinkCode}">LB-ABCDEF-GHJKMN</code>
+        </section>
+        <section class="student-link-card linked" aria-live="polite" th:if="${parentLinked}">
+            <p>Your parent account is securely connected to your learning progress.</p>
+        </section>
+
+        <!-- Stats Overview Row -->
+        <section class="stats-row">
+            <div class="stat-card">
+                <span class="stat-icon icon-time">&#9201;</span>
+                <div class="stat-info">
+                    <span class="stat-number" th:text="${readingMinutes}">65</span>
+                    <span class="stat-label">Reading Minutes</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon icon-words">&#128203;</span>
+                <div class="stat-info">
+                    <span class="stat-number" th:text="${wordsPracticed}">142</span>
+                    <span class="stat-label">Words Practiced</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon icon-accuracy">&#127919;</span>
+                <div class="stat-info">
+                    <span class="stat-number"><span th:text="${accuracyRate}">92</span>%</span>
+                    <span class="stat-label">Average Accuracy</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon icon-streak">&#128293;</span>
+                <div class="stat-info">
+                    <span class="stat-number"><span th:text="${activeStreakDays}">5</span> Days</span>
+                    <span class="stat-label">Learning Streak</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Modules Grid -->
+        <h3 class="section-title">Your Learning Hub</h3>
+        <section class="modules-grid">
+            <div class="module-card">
+                <div class="module-badge">Smart Reader</div>
+                <div class="module-icon">&#128214;</div>
+                <h4>Smart Reading Mode</h4>
+                <p>Read customized stories with OpenDyslexic font, adjustable ruler, text-to-speech, and line spacing.</p>
+                <a th:href="@{/student/reading}" class="btn-module">Start Reading &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">10 Learning Games</div>
+                <div class="module-icon">&#127918;</div>
+                <h4>Educational Games</h4>
+                <p>Practice Syllable Switch, Confusion Matrix (b/d/p/q), Word Deconstruction, and Fluency Builder.</p>
+                <a th:href="@{/student/games}" class="btn-module">Play Games &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">Voice Recognition</div>
+                <div class="module-icon">&#127897;</div>
+                <h4>Speech Practice</h4>
+                <p>Read target sentences aloud into your microphone with live phoneme accuracy feedback.</p>
+                <a th:href="@{/student/speech}" class="btn-module">Practice Speech &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">Reading Progress</div>
+                <div class="module-icon">&#128202;</div>
+                <h4>Reading Patterns</h4>
+                <p>Review letter patterns, difficult words, and reading accuracy from your practice sessions.</p>
+                <a th:href="@{/student/heatmap}" class="btn-module">View Progress &rarr;</a>
+            </div>
+        </section>
+
+        <section class="quiz-shortcuts" aria-labelledby="quiz-shortcuts-title">
+            <div class="quiz-shortcuts-heading">
+                <div class="quiz-shortcuts-icon" aria-hidden="true">&#127919;</div>
+                <div>
+                    <h3 id="quiz-shortcuts-title">Quick quizzes</h3>
+                    <p>Try a short quiz made by your teacher.</p>
+                </div>
+            </div>
+            <div class="quiz-shortcut-grid" th:if="${!#lists.isEmpty(quizzes)}">
+                <a class="quiz-shortcut" th:each="quiz : ${quizzes}"
+                   th:href="@{/student/quiz/{id}(id=${quiz.id})}">
+                    <span class="quiz-shortcut-mark" aria-hidden="true">Q</span>
+                    <span class="quiz-shortcut-copy"><strong th:text="${quiz.title}">Reading quiz</strong>
+                        <small th:text="${'Level ' + quiz.readingLevel}">Level 1</small></span>
+                    <span class="quiz-shortcut-arrow" aria-hidden="true">&#8594;</span>
+                </a>
+            </div>
+            <p class="quiz-shortcuts-empty" th:if="${#lists.isEmpty(quizzes)}">No quizzes yet. Your teacher will add one here when it is ready.</p>
+        </section>
+
+        <!-- Personalized Recommendations -->
+        <section class="recommendations-card">
+            <div class="rec-header">
+                <span class="rec-icon">&#129302;</span>
+                <div>
+                    <h4>Practice Ideas</h4>
+                    <p>Choose a short activity to build confidence. You can try either one.</p>
+                </div>
+            </div>
+            <div class="rec-items">
+                <div class="rec-item">
+                    <span class="rec-badge-focus">Letter Practice</span>
+                    <strong>Practice b and d in Letter Detective</strong>
+                    <p>Look carefully at each letter, then choose the one that completes the word.</p>
+                    <a th:href="@{/student/games/letter-detective}" class="btn-module">Try Letter Detective</a>
+                </div>
+                <div class="rec-item">
+                    <span class="rec-badge-focus">Story Time</span>
+                    <strong>The Brave Little Fox and the Big Drum</strong>
+                    <p>Read a gentle forest adventure with Barnaby and a blue bird.</p>
+                    <a th:href="@{/student/reading}" class="btn-module">Explore Reading Stories</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>
+

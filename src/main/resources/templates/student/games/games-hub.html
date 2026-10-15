@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Learning Games - LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-3')}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>
+        .games-hero { margin-bottom: 2rem; }
+        .games-hero h1 { font-size: 1.85rem; margin: 0 0 .5rem; }
+        .games-hero p { color: #cbd5e1; max-width: 650px; }
+        .games-hero .btn-action-primary { background: #38bdf8; }
+        .games-stats { margin-bottom: 2rem; }
+        .game-card { min-height: 300px; }
+        .game-icon {
+            width: 48px; height: 48px; display: grid; place-items: center;
+            border-radius: 14px; font-size: 1.8rem; margin-bottom: .75rem; color: var(--primary);
+        }
+        .game-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+        .game-card h3 { color: var(--primary); font-size: 1.2rem; margin: 0 0 .5rem; }
+        .game-card p { color: var(--text-secondary); font-size: .9rem; line-height: 1.55; flex: 1; }
+        .game-meta { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0 1rem; }
+        .badge-skill, .badge-level {
+            font-size: .72rem; font-weight: 700; padding: .25rem .65rem;
+            border-radius: 999px; letter-spacing: .02em;
+        }
+        .badge-skill { color: #4338ca; background: var(--lavender); }
+        .badge-level { color: #475569; background: #f1f5f9; }
+        .badge-level.easy { color: #15803d; background: #dcfce7; }
+        .badge-level.medium { color: #b45309; background: #fef3c7; }
+        .badge-level.hard { color: #b91c1c; background: #fee2e2; }
+        .btn-play { margin-top: auto; }
+        .game-level-picker { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:16px; padding:1rem 1.2rem; margin:0 0 1.5rem; box-shadow:var(--shadow); }
+        .game-level-picker label { font-weight:700; color:var(--primary); }
+        .game-level-picker select { font:600 1rem var(--font-stack); color:var(--text-primary); border:1px solid #cbd5e1; border-radius:10px; padding:.65rem .8rem; background:#fff; }
+        .game-level-note { color:var(--text-secondary); font-size:.9rem; }
+        .btn-play:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 3px; }
+        @media (max-width: 700px) {
+            .games-hero { align-items: flex-start; flex-direction: column; padding: 1.5rem; }
+            .games-hero h1 { font-size: 1.5rem; }
+            .game-card { min-height: 0; }
+        }
+    </style>
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('games')}"></div>
+
+<main class="main-container games-page">
+    <!-- Hero -->
+    <div class="student-hero games-hero">
+        <div class="student-hero-content">
+            <div class="level-pill"><span>10 activities to explore</span><span class="grade-tag">Your Learning Hub</span></div>
+            <h1>Learning Games</h1>
+            <p>Choose a friendly challenge to practice reading, spelling, and letter skills at your own pace.</p>
+        </div>
+        <div class="student-hero-action"><a href="#games-grid" class="btn-action-primary">Choose a game ↓</a></div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="stats-row games-stats">
+        <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-info"><span class="stat-number" th:text="${totalAttempts}">0</span><span class="stat-label">Games Played</span></div></div>
+        <div class="stat-card"><span class="stat-icon">📚</span><div class="stat-info"><span class="stat-number" th:text="${profile != null ? profile.wordsPracticedCount : 0}">0</span><span class="stat-label">Words Practiced</span></div></div>
+        <div class="stat-card"><span class="stat-icon">⭐</span><div class="stat-info"><span class="stat-number" th:text="${profile != null ? profile.currentReadingLevel : 1}">1</span><span class="stat-label">Reading Level</span></div></div>
+    </div>
+
+    <section class="game-level-picker" aria-label="Game difficulty">
+        <label for="game-level">Choose your level</label>
+        <select id="game-level">
+            <option value="1" th:selected="${recommendedLevel == 1}">Level 1 · Starter</option>
+            <option value="2" th:selected="${recommendedLevel == 2}">Level 2 · Growing</option>
+            <option value="3" th:selected="${recommendedLevel == 3}">Level 3 · Challenge</option>
+        </select>
+        <span class="game-level-note">Your choice adjusts the number of rounds and time available.</span>
+    </section>
+
+    <!-- Game cards -->
+    <h2 class="section-title">Choose your next activity</h2>
+    <div class="modules-grid games-grid" id="games-grid">
+
+        <!-- 1. Confusion Matrix -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e3f2fd;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="7.2"/><path d="m16.2 16.2 4.3 4.3M8 8v5m0-5h2a2 2 0 0 1 0 4H8m6-4v5m0-5h1a2 2 0 0 1 0 4h-1"/></svg></div>
+            <h3>Confusion Matrix</h3>
+            <p>Flash letters like b/d/p/q and tap the correct one before time runs out. Beat letter confusion for good!</p>
+            <div class="game-meta">
+                <span class="badge-skill">Letter Recognition</span>
+                <span class="badge-level easy">Easy</span>
+            </div>
+            <a href="/student/games/confusion-matrix" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 3. Word Deconstruction -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e8f5e9;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3Z"/><path d="m19 15 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg></div>
+            <h3>Word Deconstruction</h3>
+            <p>Break long words into syllable chunks by clicking the right split points. Master multisyllabic words!</p>
+            <div class="game-meta">
+                <span class="badge-skill">Syllables</span>
+                <span class="badge-level medium">Medium</span>
+            </div>
+            <a href="/student/games/word-decode" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 4. Word Parts Quest -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#f3e8ff;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H12v16H6.5A2.5 2.5 0 0 0 4 22V6.5Zm16 0A2.5 2.5 0 0 0 17.5 4H12v16h5.5A2.5 2.5 0 0 1 20 22V6.5Z"/><path d="M7 8h2m6 0h2M7 12h2m6 0h2"/></svg></div>
+            <h3>Word Parts Quest</h3>
+            <p>Build longer words from familiar roots. Use prefixes and suffixes to solve each clue.</p>
+            <div class="game-meta">
+                <span class="badge-skill">Word Structure</span>
+                <span class="badge-level hard">Level 3</span>
+            </div>
+            <a href="/student/games/word-parts-quest" data-fixed-level="3" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 5. Fluency Builder -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#fce4ec;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 2 5 13h6l-1 9 9-12h-6l1-8Z"/></svg></div>
+            <h3>Fluency Builder</h3>
+            <p>Read a sentence as highlighted words march across the screen. Build speed and smooth reading flow.</p>
+            <div class="game-meta">
+                <span class="badge-skill">Reading Fluency</span>
+                <span class="badge-level medium">Medium</span>
+            </div>
+            <a href="/student/games/fluency-builder" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 6. Error Hunter -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e8eaf6;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="7.2"/><path d="m16.2 16.2 4.3 4.3M8 8v5m0-5h2a2 2 0 0 1 0 4H8m5-4h2a2 2 0 0 1 0 4h-2m0-4v5"/></svg></div>
+            <h3>Error Hunter</h3>
+            <p>Spot and click the 5 hidden spelling mistakes in a passage. Sharpen your proofreading superpowers!</p>
+            <div class="game-meta">
+                <span class="badge-skill">Spelling</span>
+                <span class="badge-level hard">Hard</span>
+            </div>
+            <a href="/student/games/error-hunter" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 7. Sentence Sequencing -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e0f7fa;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/><path d="M2.5 6h1m-1 6h1m-1 6h1"/></svg></div>
+            <h3>Sentence Sequencing</h3>
+            <p>Drag scrambled word tiles into the correct order to form a proper sentence. Build grammar instincts!</p>
+            <div class="game-meta">
+                <span class="badge-skill">Sentence Structure</span>
+                <span class="badge-level medium">Medium</span>
+            </div>
+            <a href="/student/games/sentence-sequence" class="btn-module btn-play">Play</a>
+        </div>
+
+        <!-- 8. Paragraph Navigator -->
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#f1f8e9;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m14.8 9.2-2 5.6-5.6 2 2-5.6 5.6-2ZM12 3v2m9 7h-2M12 21v-2m-9-7h2"/></svg></div>
+            <h3>Paragraph Navigator</h3>
+            <p>Match each paragraph to its correct topic sentence. Build reading comprehension step by step.</p>
+            <div class="game-meta">
+                <span class="badge-skill">Comprehension</span>
+                <span class="badge-level hard">Hard</span>
+            </div>
+            <a href="/student/games/paragraph-navigator" class="btn-module btn-play">Play</a>
+        </div>
+
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e3f2fd;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="7.2"/><path d="m16.2 16.2 4.3 4.3M8 8v5m0-5h2a2 2 0 0 1 0 4H8m6-3h2"/></svg></div>
+            <h3>Letter Detective</h3>
+            <p>Spot the right letter in b/d and p/q word challenges. Use a gentle hint whenever you need one.</p>
+            <div class="game-meta"><span class="badge-skill">Letter Recognition</span><span class="badge-level easy">Easy</span></div>
+            <a th:href="@{/student/games/letter-detective}" class="btn-module btn-play">Play</a>
+        </div>
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#e8f5e9;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="7" cy="5" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="7" cy="19" r="1"/></svg></div>
+            <h3>Word Builder</h3>
+            <p>Rearrange mixed-up letters into a word, with a meaning hint and first-letter clue.</p>
+            <div class="game-meta"><span class="badge-skill">Spelling</span><span class="badge-level easy">Easy</span></div>
+            <a th:href="@{/student/games/word-builder}" class="btn-module btn-play">Play</a>
+        </div>
+        <div class="module-card game-card">
+            <div class="game-icon" style="background:#f3e5f5;"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h6v10H4zM14 7h6v10h-6zM10 12h4M7 10v4m10-4v4"/></svg></div>
+            <h3>Syllable Switch</h3>
+            <p>Rebuild longer words from mixed-up syllables. Use the clue and syllable hint to guide each challenge.</p>
+            <div class="game-meta"><span class="badge-skill">Syllable Sequencing</span><span class="badge-level hard">Hard</span></div>
+            <a th:href="@{/student/games/syllable-switch(level=3)}" class="btn-module btn-play">Play</a>
+        </div>
+    </div><!-- /games-grid -->
+</main>
+<script th:inline="javascript">
+    (() => {
+        const picker = document.getElementById('game-level');
+        const updateLevelLinks = () => {
+            document.querySelectorAll('.btn-play').forEach(link => {
+                const url = new URL(link.href, window.location.origin);
+                url.searchParams.set('level', link.dataset.fixedLevel || picker.value);
+                link.href = url.pathname + url.search;
+            });
+        };
+        updateLevelLinks();
+        picker.addEventListener('change', updateLevelLinks);
+    })();
+</script>
+
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>
+
+
+
+
+
+
+

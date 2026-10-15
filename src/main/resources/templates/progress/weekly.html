@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Student Progress | LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-9')}">
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('progress')}"></div>
+<main class="main-container weekly-progress-page">
+    <section class="weekly-progress-hero">
+        <div>
+            <p class="weekly-eyebrow">Six week learning journey</p>
+            <h2>Weekly Student Progress</h2>
+            <p>See reading, speaking, quizzes, and games together, one week at a time.</p>
+        </div>
+        <div class="weekly-hero-actions">
+        <form th:if="${!#lists.isEmpty(students)}" th:action="@{/progress}" method="get" class="weekly-student-picker">
+            <label for="progressStudent">Student</label>
+            <select id="progressStudent" name="studentId">
+                <option th:each="student : ${students}" th:value="${student.id}" th:selected="${selectedStudent != null and student.id == selectedStudent.id}" th:text="${student.fullName}">Student name</option>
+            </select>
+            <button type="submit">View progress</button>
+        </form>
+        <button class="weekly-theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to night mode"><span data-theme-icon aria-hidden="true">&#9790;</span><span class="weekly-theme-label" data-theme-label>Night mode</span></button>
+        </div>
+    </section>
+
+    <section class="weekly-empty card" th:if="${selectedStudent == null}">
+        <span aria-hidden="true">🌱</span>
+        <h3>No student linked yet</h3>
+        <p>Ask your school administrator to link your account to a student.</p>
+    </section>
+
+    <div th:if="${report != null}">
+        <div class="weekly-sample-note" th:if="${report.sampleData}" role="note">
+            These six weeks are sample data to preview the tracker. Real MySQL activity will replace the sample trend as practice is recorded.
+        </div>
+        <section class="weekly-section-heading">
+            <div><p class="weekly-eyebrow" th:text="${viewerRole + ' view'}">Parent view</p><h3 th:text="${selectedStudent.fullName + '’s progress'}">Student progress</h3></div>
+            <span class="weekly-date-note">Last 6 weeks</span>
+        </section>
+
+        <section class="weekly-metric-grid" aria-label="Six-week progress charts">
+            <article class="weekly-metric-card metric-accuracy">
+                <div class="weekly-metric-heading"><div><span class="weekly-metric-icon" aria-hidden="true">📖</span><h4>Reading accuracy</h4></div><strong th:text="${report.weeks[5].readingAccuracy != null ? report.weeks[5].readingAccuracy + '%' : '—'}">84%</strong></div>
+                <div class="weekly-chart" role="img" aria-label="Reading accuracy over six weeks">
+                    <div class="weekly-chart-column" th:each="week : ${report.weeks}"><span class="weekly-chart-value" th:text="${week.readingAccuracy != null ? week.readingAccuracy + '%' : '—'}">64%</span><div class="weekly-chart-track"><i th:style="|height:${week.readingAccuracyBar}%;|"></i></div><span class="weekly-chart-label" th:text="${week.weekLabel.replace('Week ', 'W')}" >W1</span></div>
+                </div>
+            </article>
+            <article class="weekly-metric-card metric-speed">
+                <div class="weekly-metric-heading"><div><span class="weekly-metric-icon" aria-hidden="true">⏱</span><h4>Reading speed</h4></div><strong th:text="${report.weeks[5].readingSpeed != null ? report.weeks[5].readingSpeed + ' WPM' : '—'}">66 WPM</strong></div>
+                <div class="weekly-chart" role="img" aria-label="Reading speed in words per minute over six weeks">
+                    <div class="weekly-chart-column" th:each="week : ${report.weeks}"><span class="weekly-chart-value" th:text="${week.readingSpeed != null ? week.readingSpeed : '—'}">43</span><div class="weekly-chart-track"><i class="speed-bar" th:style="|height:${week.readingSpeedBar}%;|"></i></div><span class="weekly-chart-label" th:text="${week.weekLabel.replace('Week ', 'W')}">W1</span></div>
+                </div>
+            </article>
+            <article class="weekly-metric-card metric-speech">
+                <div class="weekly-metric-heading"><div><span class="weekly-metric-icon" aria-hidden="true">🗣</span><h4>Speech score</h4></div><strong th:text="${report.weeks[5].speechScore != null ? report.weeks[5].speechScore + '%' : '—'}">82%</strong></div>
+                <div class="weekly-chart" role="img" aria-label="Speech score over six weeks">
+                    <div class="weekly-chart-column" th:each="week : ${report.weeks}"><span class="weekly-chart-value" th:text="${week.speechScore != null ? week.speechScore + '%' : '—'}">59%</span><div class="weekly-chart-track"><i class="speech-bar" th:style="|height:${week.speechScoreBar}%;|"></i></div><span class="weekly-chart-label" th:text="${week.weekLabel.replace('Week ', 'W')}">W1</span></div>
+                </div>
+            </article>
+            <article class="weekly-metric-card metric-quiz">
+                <div class="weekly-metric-heading"><div><span class="weekly-metric-icon" aria-hidden="true">✏️</span><h4>Quiz marks</h4></div><strong th:text="${report.weeks[5].quizMark != null ? report.weeks[5].quizMark + '%' : '—'}">81%</strong></div>
+                <div class="weekly-chart" role="img" aria-label="Quiz marks over six weeks">
+                    <div class="weekly-chart-column" th:each="week : ${report.weeks}"><span class="weekly-chart-value" th:text="${week.quizMark != null ? week.quizMark + '%' : '—'}">56%</span><div class="weekly-chart-track"><i class="quiz-bar" th:style="|height:${week.quizMarkBar}%;|"></i></div><span class="weekly-chart-label" th:text="${week.weekLabel.replace('Week ', 'W')}">W1</span></div>
+                </div>
+            </article>
+            <article class="weekly-metric-card metric-games">
+                <div class="weekly-metric-heading"><div><span class="weekly-metric-icon" aria-hidden="true">🎮</span><h4>Games completed</h4></div><strong th:text="${report.weeks[5].gamesCompleted}">6</strong></div>
+                <div class="weekly-chart" role="img" aria-label="Completed games over six weeks">
+                    <div class="weekly-chart-column" th:each="week : ${report.weeks}"><span class="weekly-chart-value" th:text="${week.gamesCompleted}">2</span><div class="weekly-chart-track"><i class="games-bar" th:style="|height:${week.gamesBar}%;|"></i></div><span class="weekly-chart-label" th:text="${week.weekLabel.replace('Week ', 'W')}">W1</span></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="weekly-details card">
+            <div class="weekly-subheading"><div><p class="weekly-eyebrow">Week-by-week</p><h3>Progress comparison</h3></div><span>Change is compared with the previous week</span></div>
+            <div class="weekly-table-scroll">
+                <table class="weekly-table">
+                    <thead><tr><th scope="col">Week</th><th scope="col">Reading accuracy</th><th scope="col">Reading speed</th><th scope="col">Speech score</th><th scope="col">Quiz marks</th><th scope="col">Games</th><th scope="col">Difficult words</th></tr></thead>
+                    <tbody><tr th:each="week : ${report.weeks}">
+                        <th scope="row"><strong th:text="${week.weekLabel}">Week 1</strong><span th:text="${week.dateRange}">Jan 1–7</span></th>
+                        <td><strong th:text="${week.readingAccuracy != null ? week.readingAccuracy + '%' : '—'}">64%</strong><small th:text="${week.readingAccuracyChange}">—</small></td>
+                        <td><strong th:text="${week.readingSpeed != null ? week.readingSpeed + ' WPM' : '—'}">43 WPM</strong><small th:text="${week.readingSpeedChange}">—</small></td>
+                        <td><strong th:text="${week.speechScore != null ? week.speechScore + '%' : '—'}">59%</strong><small th:text="${week.speechScoreChange}">—</small></td>
+                        <td><strong th:text="${week.quizMark != null ? week.quizMark + '%' : '—'}">56%</strong><small th:text="${week.quizMarkChange}">—</small></td>
+                        <td><strong th:text="${week.gamesCompleted}">2</strong><small th:text="${week.gamesChange}">—</small></td>
+                        <td><div class="weekly-word-list" th:if="${!#lists.isEmpty(week.difficultWords)}" aria-label="Difficult words and reading patterns"><span class="weekly-word-chip" th:each="word : ${week.difficultWords}" th:text="${word}">b/d (3)</span></div><span class="weekly-muted" th:if="${#lists.isEmpty(week.difficultWords)}">No difficult words flagged</span></td>
+                    </tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="weekly-recommendations">
+            <div><p class="weekly-eyebrow">Small next steps</p><h3>Learning recommendations</h3><p>Suggestions based on this student’s recent activity.</p></div>
+            <ul><li th:each="tip : ${report.recommendations}" th:text="${tip}">Practice a short, familiar story together.</li></ul>
+        </section>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>

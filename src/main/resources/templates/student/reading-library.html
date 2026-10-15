@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Reading Library – LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-5')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('reading')}"></div>
+
+    <main class="main-container">
+        <!-- Header banner -->
+        <section class="library-header-card">
+            <div class="library-header-text">
+                <a th:href="@{/student/dashboard}" class="back-link">&larr; Back to Dashboard</a>
+                <h2>Smart Reading Library</h2>
+                <p>Explore stories and articles crafted with clear sentence pacing, phoneme clarity, and customizable visual aids.</p>
+            </div>
+            <div class="current-level-tag">
+                <span>Your Recommended Level:</span>
+                <strong th:text="${profile != null ? 'Level ' + profile.currentReadingLevel : 'Level 1'}">Level 2</strong>
+            </div>
+        </section>
+
+        <!-- Filters & Search Bar -->
+        <section class="filter-bar">
+            <form th:action="@{/student/reading}" method="get" class="filter-form">
+                <div class="filter-levels">
+                    <a th:href="@{/student/reading(category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == null} ? 'active' : ''">All Levels</a>
+                    <a th:href="@{/student/reading(level=1,category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == 1} ? 'active' : ''">Level 1 (Beginner)</a>
+                    <a th:href="@{/student/reading(level=2,category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == 2} ? 'active' : ''">Level 2 (Intermediate)</a>
+                    <a th:href="@{/student/reading(level=3,category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == 3} ? 'active' : ''">Level 3 (Advanced)</a>
+                    <a th:href="@{/student/reading(level=4,category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == 4} ? 'active' : ''">Level 4 (Fluent)</a>
+                    <a th:href="@{/student/reading(level=5,category=${selectedCategory},q=${searchQuery})}" class="level-chip" th:classappend="${selectedLevel == 5} ? 'active' : ''">Level 5 (Expert)</a>
+                </div>
+
+                <div class="search-input-wrapper">
+                    <input th:if="${selectedLevel != null}" type="hidden" name="level" th:value="${selectedLevel}">
+                    <select id="readingCategory" name="category" class="category-filter-select" aria-label="Filter by category">
+                        <option value="" th:selected="${selectedCategory == null}">All categories</option>
+                        <option th:each="category : ${categories}" th:value="${category}" th:text="${category}" th:selected="${category == selectedCategory}">Story</option>
+                    </select>
+                    <input type="text" name="q" th:value="${searchQuery}" placeholder="Search stories, words, or phonics..." class="search-input">
+                    <button type="submit" class="btn-search">&#128269; Search</button>
+                    <a th:if="${searchQuery != null or selectedLevel != null or selectedCategory != null}" th:href="@{/student/reading}" class="btn-clear-filter">Reset</a>
+                </div>
+            </form>
+        </section>
+
+        <!-- Materials Grid -->
+        <section class="materials-grid" th:if="${#lists.size(materials) > 0}">
+            <div class="material-card" th:each="m : ${materials}">
+                <div class="material-card-top">
+                    <span class="cover-emoji" th:text="${m.coverEmoji}">📖</span>
+                    <span class="level-indicator" th:text="${'Level ' + m.readingLevel}">Level 1</span>
+                </div>
+
+                <h3 class="material-title" th:text="${m.title}">The Brave Little Fox and the Big Drum</h3>
+                <p class="material-description" th:text="${m.description}">A gentle story designed to practice distinguishing the letters 'b' and 'd'.</p>
+
+                <div class="material-tags">
+                    <span class="tag-phoneme" th:if="${m.targetPhonemes != null}" th:text="${'Phonics: ' + m.targetPhonemes}">Phonics: b vs d</span>
+                    <span class="tag-category" th:text="${m.category}">Story</span>
+                </div>
+
+                <div class="material-meta-row">
+                    <span>&#9201; <strong th:text="${m.estimatedReadingMinutes}">3</strong> min read</span>
+                    <span>&#128221; <strong th:text="${m.wordCount}">92</strong> words</span>
+                </div>
+
+                <a th:href="@{'/student/reading/' + ${m.id}}" class="btn-open-reader">&#128214; Read in Smart Mode &rarr;</a>
+            </div>
+        </section>
+
+        <!-- Empty state -->
+        <section th:if="${#lists.size(materials) == 0}" class="empty-state-card">
+            <span class="empty-icon">&#128218;</span>
+            <h4>No Reading Materials Found</h4>
+            <p>Try searching with different terms or selecting another reading level.</p>
+            <a th:href="@{/student/reading}" class="btn-primary" style="margin-top: 1rem;">View All Stories</a>
+        </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>

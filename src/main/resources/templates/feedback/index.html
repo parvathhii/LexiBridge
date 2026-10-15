@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent–Teacher Feedback | LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-4')}">
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('feedback')}"></div>
+<main class="main-container feedback-page">
+    <section class="feedback-hero">
+        <div class="feedback-eyebrow">Family and school teamwork</div>
+        <h2>Parent–Teacher Feedback</h2>
+        <p>Share a helpful update with the people supporting your student. Messages are visible only to linked parents and teachers.</p>
+    </section>
+
+    <div class="feedback-alert feedback-alert-success" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="feedback-alert feedback-alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+
+    <section class="feedback-compose card">
+        <div class="feedback-section-heading">
+            <span class="feedback-icon" aria-hidden="true">✉</span>
+            <div><h3>Write a message</h3><p>Your message will go to the linked contact for that student.</p></div>
+        </div>
+        <form th:action="@{/feedback}" method="post" class="feedback-form">
+            <label for="studentId">Student</label>
+            <select id="studentId" name="studentId" required th:disabled="${#lists.isEmpty(students)}">
+                <option value="" selected disabled>Choose a student</option>
+                <option th:each="student : ${students}" th:value="${student.id}" th:text="${student.fullName}">Student name</option>
+            </select>
+            <label for="category">Feedback category</label>
+            <select id="category" name="category" required>
+                <option value="" selected disabled>Choose a category</option>
+                <option th:each="category : ${categories}" th:value="${category}" th:text="${category}">Learning progress</option>
+            </select>
+            <label for="feedbackMessage">Message</label>
+            <textarea id="feedbackMessage" name="feedbackMessage" rows="5" maxlength="2000" required
+                      placeholder="Share a kind, useful update or question..." aria-describedby="feedback-help"></textarea>
+            <small id="feedback-help">Up to 2,000 characters. Please avoid including sensitive personal information.</small>
+            <button class="btn-action-primary feedback-submit" type="submit" th:disabled="${#lists.isEmpty(students)}">Send feedback</button>
+            <p class="feedback-no-students" th:if="${#lists.isEmpty(students)}">Your account is not linked to a student yet. Please ask your school administrator to connect it.</p>
+        </form>
+    </section>
+
+    <section class="feedback-history">
+        <div class="feedback-history-title"><div><h3>Feedback history</h3><p>Messages and replies about your linked students.</p></div></div>
+        <div class="feedback-empty card" th:if="${#lists.isEmpty(history)}">
+            <span aria-hidden="true">🌱</span><strong>No messages yet</strong>
+            <p>Your feedback and replies will appear here.</p>
+        </div>
+        <div class="feedback-table-wrap" th:unless="${#lists.isEmpty(history)}">
+            <table class="feedback-table">
+                <thead><tr>
+                    <th scope="col">Feedback ID</th><th scope="col">Sender Name</th><th scope="col">Sender Role</th>
+                    <th scope="col">Student Name</th><th scope="col">Category and Message</th>
+                    <th scope="col">Date and Time</th><th scope="col">Status</th><th scope="col">Reply</th>
+                </tr></thead>
+                <tbody>
+                <tr th:each="item : ${history}">
+                    <td data-label="Feedback ID" th:text="${item.id}">1</td>
+                    <td data-label="Sender Name" th:text="${item.sender.fullName}">Sender name</td>
+                    <td data-label="Sender Role"><span class="feedback-role-pill" th:text="${item.sender.role.name() == 'ROLE_PARENT' ? 'Parent' : 'Teacher'}">Parent</span></td>
+                    <td data-label="Student Name" th:text="${item.student.fullName}">Student name</td>
+                    <td data-label="Category and Message" class="feedback-message-cell">
+                        <strong th:text="${item.category}">Learning progress</strong>
+                        <p th:text="${item.feedbackMessage}">Feedback message</p>
+                    </td>
+                    <td data-label="Date and Time" class="feedback-date" th:text="${#temporals.format(item.createdAt, 'dd MMM yyyy, HH:mm')}">15 Oct 2026, 10:30</td>
+                    <td data-label="Status"><span class="feedback-status" th:classappend="${item.read} ? ' is-read' : ' is-unread'" th:text="${item.read} ? 'Read' : 'Unread'">Unread</span></td>
+                    <td data-label="Reply" class="feedback-reply-cell">
+                        <p th:if="${item.reply != null and item.reply != ''}" th:text="${item.reply}">Reply</p>
+                        <span class="feedback-no-reply" th:if="${(item.reply == null or item.reply == '') and item.sender.id == user.id}">Waiting for a reply</span>
+                        <form th:if="${(item.reply == null or item.reply == '') and item.recipient.id == user.id}"
+                              th:action="@{/feedback/{id}/reply(id=${item.id})}" method="post" class="feedback-reply-form">
+                            <label class="visually-hidden" th:for="${'reply-' + item.id}">Write a reply</label>
+                            <textarea th:id="${'reply-' + item.id}" name="reply" rows="2" maxlength="2000" required placeholder="Write a reply..."></textarea>
+                            <button class="feedback-reply-button" type="submit">Reply</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>

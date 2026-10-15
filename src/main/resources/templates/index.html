@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexiBridge – Dyslexia-Friendly Learning Portal</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-4')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('home')}"></div>
+
+    <main class="main-container">
+        <!-- Hero Section -->
+        <section class="hero-card">
+            <div class="badge-tag">College Major Project</div>
+            <h2>Empowering Neurodivergent Learners with Accessible Technology</h2>
+            <p class="hero-description">
+                LexiBridge is a full-featured assistive educational platform built for children and learners with dyslexia. Featuring tailored typography, auditory feedback, 8 phonemic games, cognitive error tracking, and role-based portals for students, parents, teachers, and admins.
+            </p>
+            <div class="hero-cta-group" style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}" class="btn-action-primary">&#128273; Access Portal (Login)</a>
+                    <a th:href="@{/register}" class="btn-register-hero">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 20v-1.4a4.1 4.1 0 0 0-4.1-4.1H7.6a4.1 4.1 0 0 0-4.1 4.1V20M9.5 10.8a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2ZM19 7v6M16 10h6"/></svg>
+                        <span>Create Free Account</span>
+                    </a>
+                </div>
+                <div sec:authorize="hasRole('STUDENT')">
+                    <a th:href="@{/student/dashboard}" class="btn-action-primary">&#127891; Enter Student Dashboard &rarr;</a>
+                </div>
+                <div sec:authorize="hasRole('PARENT')">
+                    <a th:href="@{/parent/dashboard}" class="btn-action-primary">&#128106; Enter Parent Dashboard &rarr;</a>
+                </div>
+                <div sec:authorize="hasRole('TEACHER')">
+                    <a th:href="@{/teacher/dashboard}" class="btn-action-primary">&#128218; Enter Teacher Dashboard &rarr;</a>
+                </div>
+                <div sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/dashboard}" class="btn-action-primary">&#128737; Enter Admin Control Center &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Role Portals Grid -->
+        <h3 class="section-title">Four Dedicated Portals</h3>
+        <section class="modules-grid">
+            <div class="module-card">
+                <div class="module-badge">Learner</div>
+                <div class="module-icon">&#127891;</div>
+                <h4>Student Portal</h4>
+                <p>Personalized reading with dyslexia fonts, reading ruler, speech recognition, and 8 educational phonics games.</p>
+                <a th:href="@{/login}" class="btn-module">Log in as Student &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">Guardian</div>
+                <div class="module-icon">&#128106;</div>
+                <h4>Parent Portal</h4>
+                <p>Track children's daily reading time, accuracy growth, milestones, and supportive guidance for at-home learning.</p>
+                <a th:href="@{/login}" class="btn-module">Log in as Parent &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">Educator</div>
+                <div class="module-icon">&#128218;</div>
+                <h4>Teacher Portal</h4>
+                <p>Classroom rosters, curriculum-aligned reading materials, custom quizzes, and comprehensive student analytics.</p>
+                <a th:href="@{/login}" class="btn-module">Log in as Teacher &rarr;</a>
+            </div>
+
+            <div class="module-card">
+                <div class="module-badge">Administrator</div>
+                <div class="module-icon">&#128737;</div>
+                <h4>Admin Portal</h4>
+                <p>System configuration, database monitoring, role assignment, and platform-wide accessibility controls.</p>
+                <a th:href="@{/login}" class="btn-module">Log in as Admin &rarr;</a>
+            </div>
+        </section>
+
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+</body>
+</html>

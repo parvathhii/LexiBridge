@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register – LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-1')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('register')}"></div>
+
+    <main class="main-container auth-page">
+        <div class="auth-card register-card">
+            <div class="auth-header">
+                <span class="auth-icon">&#128221;</span>
+                <h2>Join LexiBridge</h2>
+                <p>Create your personalized accessible learning account</p>
+            </div>
+
+            <!-- Error banner -->
+            <div th:if="${errorMessage}" class="alert alert-error" role="alert">
+                <span class="alert-icon">&#9888;</span>
+                <span th:text="${errorMessage}">Registration error occurred</span>
+            </div>
+
+            <form th:action="@{/register/save}" th:object="${userDto}" method="post" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" th:field="*{fullName}" class="form-control" placeholder="e.g. Anagha Krishnan" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" th:field="*{username}" class="form-control" placeholder="Choose a username" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="name@example.com" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Minimum 6 characters" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control" placeholder="Re-type password" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Your Role</label>
+                    <div class="role-selector-grid">
+                        <label class="role-choice">
+                            <input type="radio" th:field="*{role}" value="ROLE_STUDENT" onchange="toggleRegistrationFields()">
+                            <div class="role-box">
+                                <span class="role-icon">&#127891;</span>
+                                <strong>Student</strong>
+                                <small>Interactive reader &amp; games</small>
+                            </div>
+                        </label>
+                        <label class="role-choice">
+                            <input type="radio" th:field="*{role}" value="ROLE_PARENT" onchange="toggleRegistrationFields()">
+                            <div class="role-box">
+                                <span class="role-icon">&#128106;</span>
+                                <strong>Parent</strong>
+                                <small>Track children's progress</small>
+                            </div>
+                        </label>
+                        <label class="role-choice">
+                            <input type="radio" th:field="*{role}" value="ROLE_TEACHER" onchange="toggleRegistrationFields()">
+                            <div class="role-box">
+                                <span class="role-icon">&#128218;</span>
+                                <strong>Teacher</strong>
+                                <small>Assign materials &amp; quizzes</small>
+                            </div>
+                        </label>
+                    </div>
+                    <span class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
+                </div>
+
+                <div id="parent-link-fields" class="form-group" style="display:none">
+                    <label for="studentLinkCode">Student registration code</label>
+                    <input type="text" id="studentLinkCode" th:field="*{studentLinkCode}" class="form-control"
+                           placeholder="e.g. LB-ABCDEF-GHJKMN" maxlength="20" autocomplete="off" spellcheck="false"
+                           style="text-transform:uppercase" aria-describedby="student-link-help">
+                    <small id="student-link-help">Ask the student to sign in and share the parent link code shown on their dashboard. Each code can link one parent account.</small>
+                    <span class="field-error" th:if="${#fields.hasErrors('studentLinkCode')}" th:errors="*{studentLinkCode}"></span>
+                </div>
+
+                <!-- Student specific fields -->
+                <div id="student-specific-fields" class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="gradeLevel">Grade Level</label>
+                        <select id="gradeLevel" th:field="*{gradeLevel}" class="form-control">
+                            <option value="Grade 1">Grade 1 (Ages 6-7)</option>
+                            <option value="Grade 2">Grade 2 (Ages 7-8)</option>
+                            <option value="Grade 3" selected>Grade 3 (Ages 8-9)</option>
+                            <option value="Grade 4">Grade 4 (Ages 9-10)</option>
+                            <option value="Grade 5">Grade 5 (Ages 10-11)</option>
+                            <option value="Middle School">Middle School</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label for="age">Student Age</label>
+                        <input type="number" id="age" th:field="*{age}" class="form-control" min="5" max="25" value="8">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Complete Registration</button>
+            </form>
+
+            <div class="auth-footer-links">
+                <p>Already have an account? <a th:href="@{/login}">Sign In</a></p>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+
+    <script>
+        function toggleRegistrationFields() {
+            const role = document.querySelector('input[name="role"]:checked')?.value;
+            const isStudent = role === 'ROLE_STUDENT';
+            const isParent = role === 'ROLE_PARENT';
+            const studentFields = document.getElementById('student-specific-fields');
+            const parentFields = document.getElementById('parent-link-fields');
+            const studentCode = document.getElementById('studentLinkCode');
+            if (studentFields) studentFields.style.display = isStudent ? 'flex' : 'none';
+            if (parentFields) parentFields.style.display = isParent ? 'block' : 'none';
+            if (studentCode) studentCode.required = isParent;
+        }
+        document.addEventListener('DOMContentLoaded', toggleRegistrationFields);
+    </script>
+</body>
+</html>

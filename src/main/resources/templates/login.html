@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In – LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-5')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-offwhite">
+    <div th:replace="~{fragments/header :: appHeader('login')}"></div>
+
+    <main class="main-container auth-page">
+        <div class="auth-card">
+            <div class="auth-theme-row"><button class="header-theme-toggle auth-theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to night mode"><span data-theme-icon aria-hidden="true">☾</span><span data-theme-label>Night mode</span></button></div>
+            <div class="auth-header">
+                <span class="auth-icon">&#128273;</span>
+                <h2>Welcome Back to LexiBridge</h2>
+                <p>Log in to access your dyslexia-friendly learning portal</p>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${errorMessage}" class="alert alert-error" role="alert">
+                <span class="alert-icon">&#9888;</span>
+                <span th:text="${errorMessage}">Invalid username or password</span>
+            </div>
+
+            <div th:if="${logoutMessage}" class="alert alert-info" role="alert">
+                <span class="alert-icon">&#10004;</span>
+                <span th:text="${logoutMessage}">You have been logged out</span>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                <span class="alert-icon">&#10004;</span>
+                <span th:text="${successMessage}">Account registered successfully!</span>
+            </div>
+
+            <form th:action="@{/login}" method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="e.g. student or student@lexibridge.edu" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In to LexiBridge</button>
+            </form>
+
+            <div class="auth-footer-links">
+                <p>Don't have an account yet? <a th:href="@{/register}">Create an Account</a></p>
+            </div>
+
+            <!-- Quick Demo Credentials Box -->
+            <div class="demo-box">
+                <h4>Demo Quick-Logins (Password: <code>Password@123</code>)</h4>
+                <div class="demo-grid">
+                    <div class="demo-pill" onclick="fillLogin('student', 'Password@123')">
+                        <strong>Student: Anagha Krishnan</strong><br><code>student</code>
+                    </div>
+                    <div class="demo-pill" onclick="fillLogin('parent', 'Password@123')">
+                        <strong>Parent: Meera Nair</strong><br><code>parent</code>
+                    </div>
+                    <div class="demo-pill" onclick="fillLogin('teacher', 'Password@123')">
+                        <strong>Teacher: Anu Jose</strong><br><code>teacher</code>
+                    </div>
+                    <div class="demo-pill" onclick="fillLogin('admin', 'Password@123')">
+                        <strong>Admin:</strong> <code>admin</code>
+                    </div>
+                </div>
+                <small class="demo-hint">Click any role pill above to auto-fill username &amp; password!</small>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: appFooter}"></div>
+
+    <script th:src="@{/js/theme-mode.js(v='1')}" defer></script>
+    <script>
+        function fillLogin(user, pass) {
+            document.getElementById('username').value = user;
+            document.getElementById('password').value = pass;
+        }
+    </script>
+</body>
+</html>

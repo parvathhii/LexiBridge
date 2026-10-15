@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Parent Dashboard | LexiBridge</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261016-4')}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/font-opendyslexic/latest/opendyslexic.css">
+    <style>
+        .parent-page{width:min(1160px,calc(100% - 2rem));margin:2rem auto 4rem;color:#172554;font-family:'Lexend',Arial,sans-serif;letter-spacing:.02em}
+        .parent-hero{display:flex;justify-content:space-between;gap:1.5rem;align-items:center;background:linear-gradient(130deg,#eaf4ff,#f3efff);border:1px solid #dce7f6;border-radius:24px;padding:clamp(1.4rem,4vw,2.4rem);margin-bottom:1rem}
+        .parent-hero h2{font-size:clamp(1.7rem,4vw,2.35rem);line-height:1.25;margin:.45rem 0;color:#172554}.parent-hero p{color:#475569;max-width:680px}
+        .parent-kicker{font-size:.8rem;letter-spacing:.12em;font-weight:700;color:#5148a8}.child-select-wrap{display:grid;gap:.4rem;min-width:min(280px,100%);color:#334155;font-weight:600}.child-select-wrap select{font:600 1rem 'Lexend',sans-serif;padding:.75rem;border:1px solid #cbd5e1;background:white;border-radius:11px;color:#1e3a8a}
+        .parent-alert{margin:.8rem 0;padding:.8rem 1rem;border-radius:12px;background:#dcfce7;color:#166534;font-weight:600}.parent-alert.error{background:#fee2e2;color:#991b1b}
+        .parent-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0}.parent-nav a{padding:.55rem .8rem;border-radius:10px;text-decoration:none;background:#fff;border:1px solid #dbe3ef;color:#24479b;font-weight:600;font-size:.88rem}.parent-nav a:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+        .parent-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin:1rem 0}.parent-stat{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1rem;box-shadow:0 5px 18px #1e293b08}.parent-stat strong{display:block;font-size:1.65rem;color:#24479b}.parent-stat span{color:#64748b;font-size:.85rem}
+        .parent-section{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:clamp(1rem,3vw,1.4rem);box-shadow:0 8px 24px #1e293b08;min-width:0}.parent-section h3{font-size:1.15rem;color:#1e3a8a;margin:0 0 .3rem}.parent-section-sub{color:#64748b;font-size:.9rem;margin-bottom:1rem}.parent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1rem 0}
+        .score-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem}.score-tile{border-radius:14px;background:#f5f7ff;padding:.85rem;text-align:center}.score-tile strong{display:block;font-size:1.35rem;color:#24479b}.score-tile span{font-size:.78rem;color:#64748b}
+        .parent-weekly-list{display:grid;gap:.75rem;margin:.5rem 0}.parent-week-row{display:grid;grid-template-columns:minmax(68px,82px) minmax(0,1fr) minmax(78px,94px);align-items:center;gap:.7rem}.parent-week-label{color:#475569;font-size:.78rem}.parent-week-track{height:14px;overflow:hidden;border-radius:99px;background:#edf2f8}.parent-week-track span{display:block;height:100%;min-width:0;border-radius:99px;background:linear-gradient(90deg,#60a5fa,#4f46a5)}.parent-week-values{display:grid;justify-items:end;line-height:1.35}.parent-week-values strong{color:#24479b;font-size:.76rem}.parent-week-values small{color:#64748b;font-size:.67rem}
+        .insight-list,.recommend-list,.achievement-list{list-style:none;padding:0;margin:0;display:grid;gap:.6rem}.insight-list li,.recommend-list li{padding:.75rem .85rem;background:#f8fafc;border-radius:12px;color:#334155;line-height:1.5}.insight-list strong{color:#1e3a8a}.insight-empty{color:#64748b;padding:.8rem;background:#f8fafc;border-radius:12px;line-height:1.55}
+        .record-list{list-style:none;padding:0;margin:0}.record-list li{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.75rem 0;border-top:1px solid #e8edf4}.record-main{min-width:0}.record-title{font-weight:600;color:#1e293b;display:block;overflow-wrap:anywhere}.record-detail{font-size:.82rem;color:#64748b}.record-score{font-weight:700;color:#24479b;white-space:nowrap}.record-date{font-size:.75rem;color:#64748b;display:block;text-align:right}
+        .activity-filters{display:flex;flex-wrap:wrap;gap:.45rem;margin:.75rem 0 1rem}.activity-filter{border:1px solid #dbe3ef;border-radius:999px;padding:.52rem .85rem;background:#fff;color:#334155;font:600 .85rem 'Lexend',sans-serif;cursor:pointer}.activity-filter:hover,.activity-filter.selected{border-color:#6677c8;background:#eef1ff;color:#293c8e}.activity-filter:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+        .achievement-list{grid-template-columns:repeat(3,minmax(0,1fr))}.achievement{padding:.8rem;border-radius:13px;border:1px solid #e2e8f0;background:#f8fafc;opacity:.72}.achievement.earned{opacity:1;background:#eff6ff;border-color:#bfdbfe}.achievement strong{display:block;color:#1e3a8a}.achievement span{font-size:.78rem;color:#64748b}.achievement-state{display:block;margin-top:.4rem;font-size:.72rem;font-weight:700;color:#64748b}.earned .achievement-state{color:#166534}
+        .reminder-form{display:grid;grid-template-columns:1.2fr 1fr auto;gap:.6rem;margin-bottom:1rem}.reminder-form input,.reminder-form textarea{font:500 .92rem 'Lexend',sans-serif;border:1px solid #cbd5e1;border-radius:10px;padding:.7rem;color:#1e293b;min-width:0}.reminder-form textarea{grid-column:1/3;min-height:74px;resize:vertical}.reminder-submit{border:0;border-radius:10px;background:#24479b;color:#fff;padding:.7rem 1rem;font:600 .9rem 'Lexend',sans-serif;cursor:pointer;grid-column:3;grid-row:1/3}.reminder-submit:focus-visible,.reminder-toggle:focus-visible,.child-select-wrap select:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+        .reminder-list{list-style:none;padding:0;margin:0;display:grid;gap:.6rem}.reminder{border:1px solid #e2e8f0;border-radius:12px;padding:.8rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem}.reminder.overdue{border-color:#fecaca;background:#fff7f7}.reminder.done{opacity:.65}.reminder-copy strong{display:block;color:#1e293b}.reminder-copy small{color:#64748b}.reminder-copy p{font-size:.85rem;color:#475569;margin-top:.3rem}.reminder-toggle{border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:.5rem .65rem;color:#24479b;font-weight:600;cursor:pointer;white-space:nowrap}
+        .parent-empty{padding:1.2rem;border:1px dashed #cbd5e1;border-radius:14px;background:#f8fafc;color:#64748b;line-height:1.6}.parent-footer-note{color:#64748b;font-size:.82rem;margin-top:.75rem}
+        .reading-settings-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}.reading-setting{display:grid;gap:.35rem;color:#334155;font-size:.86rem;font-weight:600}.reading-setting select{width:100%;min-height:44px;border:1px solid #cbd5e1;border-radius:10px;padding:.65rem;background:#fff;color:#1e293b;font:500 .92rem 'Lexend',sans-serif}.reading-setting select:focus-visible,.reading-setting input:focus-visible,.settings-save:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}.reading-setting input[type=range]{width:100%;accent-color:#4f46a5}.reading-setting output{font-variant-numeric:tabular-nums;color:#5148a8}.reading-setting-check{display:flex;align-items:center;gap:.55rem;min-height:44px;color:#334155;font-weight:600}.reading-setting-check input{width:1.2rem;height:1.2rem;accent-color:#4f46a5}.reading-preview-wrap{grid-column:1/-1;padding:1rem;border-radius:14px;background:#f3f5fb}.reading-preview{position:relative;min-height:100px;padding:1rem 1.2rem;border:1px solid #dbe3ef;border-radius:11px;background:#fbfaf6;color:#26364a;font-size:20px;line-height:1.8;letter-spacing:.06em;font-family:'OpenDyslexic',sans-serif;white-space:pre-line}.preview-ruler{display:none;position:absolute;left:.5rem;right:.5rem;top:48%;height:1.5em;border-top:1px solid #f59e0b;border-bottom:1px solid #f59e0b;background:#fef3c766;pointer-events:none}.settings-save{justify-self:start;border:0;border-radius:11px;padding:.8rem 1.1rem;background:#24479b;color:#fff;font:700 .95rem 'Lexend',sans-serif;cursor:pointer}.reading-settings-form .reading-setting-check{align-self:end}@media(max-width:650px){.reading-settings-form{grid-template-columns:1fr}.reading-preview-wrap{grid-column:auto}.settings-save{width:100%}}
+        .child-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem;margin:1rem 0}.child-card-link{display:block;text-decoration:none;background:#fff;border:1px solid #dbe3ef;padding:.85rem;border-radius:13px;color:#334155}.child-card-link.selected{border:2px solid #6476c8;background:#f5f7ff}.child-card-link strong{color:#1e3a8a}
+        @media(max-width:850px){.parent-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.score-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.achievement-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:650px){.parent-page{margin-top:1rem}.parent-hero{align-items:flex-start;flex-direction:column;border-radius:18px}.child-select-wrap{width:100%}.parent-grid{grid-template-columns:1fr}.parent-week-row{grid-template-columns:58px minmax(0,1fr) 76px;gap:.5rem}.reminder-form{grid-template-columns:1fr 1fr}.reminder-form textarea{grid-column:1/3}.reminder-submit{grid-column:1/3;grid-row:auto}.achievement-list{grid-template-columns:1fr 1fr}}
+        @media(max-width:420px){.parent-stat-grid{gap:.5rem}.parent-stat{padding:.75rem}.parent-stat strong{font-size:1.35rem}.reminder{align-items:flex-start;flex-direction:column}.reminder-toggle{align-self:flex-end}}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    </style>
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('dashboard')}"></div>
+<main class="parent-page">
+    <section class="parent-hero" aria-labelledby="parent-title">
+        <div>
+            <span class="parent-kicker">FAMILY LEARNING SPACE</span>
+            <h2 id="parent-title">Welcome, <span th:text="${parent.fullName}">Parent</span></h2>
+            <p>Follow real practice activity, notice progress over time, and plan encouraging next steps together.</p>
+        </div>
+        <label class="child-select-wrap" th:if="${childrenCount > 0}" for="child-picker">Viewing progress for
+            <select id="child-picker" aria-label="Select a linked child">
+                <option th:each="c : ${children}" th:value="${c.student.id}" th:selected="${c.selected}" th:text="${c.student.fullName}">Student</option>
+            </select>
+        </label>
+    </section>
+
+    <div class="parent-alert" th:if="${parentNotice}" role="status" th:text="${parentNotice}">Reminder saved.</div>
+    <div class="parent-alert error" th:if="${parentError}" role="alert" th:text="${parentError}">There was a problem.</div>
+
+    <nav class="parent-nav" th:if="${hasChild}" aria-label="Dashboard sections">
+        <a href="#progress">Progress</a><a href="#patterns">Reading patterns</a><a href="#reading-settings">Reading settings</a><a href="#activities">Activities</a><a href="#homework">Homework</a><a href="#achievements">Achievements</a>
+    </nav>
+
+    <section class="child-overview" th:if="${childrenCount > 1}" aria-label="Linked children">
+        <a th:each="c : ${children}" th:href="@{/parent/dashboard(childId=${c.student.id})}"
+           th:class="${c.selected ? 'child-card-link selected' : 'child-card-link'}">
+            <strong th:text="${c.student.fullName}">Child</strong><br>
+            <span th:text="${c.minutes + ' reading minutes · ' + c.words + ' words practiced'}">0 minutes</span>
+        </a>
+    </section>
+
+    <section th:if="${!hasChild}" class="parent-empty">
+        <h3>No child linked yet</h3>
+        <p>No student information is shown until you link an existing student. Ask the student to sign in and share the one-time parent link code shown on their dashboard.</p>
+        <form th:action="@{/parent/link-student}" method="post" class="parent-link-form">
+            <label for="student-link-code">Student registration code</label>
+            <input id="student-link-code" name="studentLinkCode" type="text" required maxlength="20"
+                   placeholder="LB-ABCDEF-GHJKMN" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+            <button type="submit">Link student</button>
+        </form>
+    </section>
+
+    <div th:if="${hasChild}">
+        <section class="parent-stat-grid" aria-label="Selected child's learning summary">
+            <div class="parent-stat"><strong th:text="${totalReadingMinutes + ' min'}">0 min</strong><span>Reading time</span></div>
+            <div class="parent-stat"><strong th:text="${learningMinutes + ' min'}">0 min</strong><span>Total tracked learning time</span></div>
+            <div class="parent-stat"><strong th:text="${gamesCompleted}">0</strong><span>Games completed</span></div>
+            <div class="parent-stat"><strong th:text="${quizzesCompleted}">0</strong><span>Quizzes completed</span></div>
+            <div class="parent-stat"><strong th:text="${profile != null ? 'Level ' + profile.currentReadingLevel : '—'}">Level 1</strong><span>Current reading level</span></div>
+        </section>
+
+        <section id="progress" class="parent-section" aria-labelledby="accuracy-heading">
+            <h3 id="accuracy-heading" th:text="${selectedChild.fullName + '’s practice snapshot'}">Practice snapshot</h3>
+            <p class="parent-section-sub">Scores below come from completed activities saved to the learning record.</p>
+            <div class="score-grid">
+                <div class="score-tile"><strong th:text="${hasReadingAccuracy ? readingAccuracy + '%' : '—'}">—</strong><span>Read-aloud accuracy</span></div>
+                <div class="score-tile"><strong th:text="${hasSpeechAccuracy ? speechAccuracy + '%' : '—'}">—</strong><span>Speech practice</span></div>
+                <div class="score-tile"><strong th:text="${hasGameAccuracy ? gameAccuracy + '%' : '—'}">—</strong><span>Game accuracy</span></div>
+                <div class="score-tile"><strong th:text="${hasQuizAccuracy ? quizAccuracy + '%' : '—'}">—</strong><span>Quiz average</span></div>
+            </div>
+            <p class="parent-footer-note">A dash means no saved attempts for that activity yet. Untracked reading sessions do not receive an estimated accuracy score.</p>
+        </section>
+
+        <section id="reading-settings" class="parent-section" style="margin-top:1rem" aria-labelledby="reading-settings-heading">
+            <h3 id="reading-settings-heading" th:text="${'Reading settings for ' + selectedChild.fullName}">Reading settings</h3>
+            <p class="parent-section-sub">Choose comfortable reading visuals. These preferences are saved to this child's profile and used in Smart Reading.</p>
+            <form class="reading-settings-form" method="post" th:action="@{/parent/children/{childId}/reading-settings(childId=${childId})}" id="readingSettingsForm">
+                <label class="reading-setting" for="settingFont">Font style
+                    <select id="settingFont" name="fontPreference">
+                        <option value="OpenDyslexic" th:selected="${profile == null or profile.fontPreference == null or profile.fontPreference == 'OpenDyslexic'}">OpenDyslexic</option>
+                        <option value="Lexend" th:selected="${profile != null and profile.fontPreference == 'Lexend'}">Lexend</option>
+                        <option value="Comic Neue" th:selected="${profile != null and profile.fontPreference == 'Comic Neue'}">Comic Neue</option>
+                        <option value="Arial" th:selected="${profile != null and profile.fontPreference == 'Arial'}">Arial</option>
+                    </select>
+                </label>
+                <label class="reading-setting" for="settingFontSize">Font size <output id="fontSizeOutput" for="settingFontSize" th:text="${(profile != null and profile.fontSize != null ? profile.fontSize : 20) + ' px'}">20 px</output>
+                    <input id="settingFontSize" name="fontSize" type="range" min="16" max="32" step="2" th:value="${profile != null and profile.fontSize != null ? profile.fontSize : 20}">
+                </label>
+                <label class="reading-setting" for="settingLineSpacing">Line spacing
+                    <select id="settingLineSpacing" name="lineSpacing" th:value="${profile != null and profile.lineSpacing != null ? profile.lineSpacing : 1.8}">
+                        <option value="1.4" th:selected="${profile != null and profile.lineSpacing == 1.4}">Comfortable</option><option value="1.75" th:selected="${profile != null and profile.lineSpacing == 1.75}">Comfortable plus</option><option value="1.8" th:selected="${profile == null or profile.lineSpacing == null or profile.lineSpacing == 1.8}">Roomy</option><option value="2.2" th:selected="${profile != null and profile.lineSpacing == 2.2}">Extra roomy</option><option value="2.6" th:selected="${profile != null and profile.lineSpacing == 2.6}">Wide</option>
+                    </select>
+                </label>
+                <label class="reading-setting" for="settingLetterSpacing">Letter spacing
+                    <select id="settingLetterSpacing" name="letterSpacing">
+                        <option value="0.02em" th:selected="${profile != null and profile.letterSpacing == '0.02em'}">Normal</option><option value="0.06em" th:selected="${profile == null or profile.letterSpacing == null or profile.letterSpacing == '0.06em'}">Spacious</option><option value="0.12em" th:selected="${profile != null and profile.letterSpacing == '0.12em'}">Extra wide</option>
+                    </select>
+                </label>
+                <label class="reading-setting" for="settingTextColor">Text color
+                    <select id="settingTextColor" name="readingTextColor">
+                        <option value="#26364a" th:selected="${(profile == null or profile.readingTextColor == null or profile.readingTextColor == '#26364a') and (profile == null or profile.themePreference != 'theme-dark')}">Soft charcoal</option><option value="#17324d" th:selected="${profile != null and profile.readingTextColor == '#17324d' and profile.themePreference != 'theme-dark'}">Deep blue</option><option value="#4b3621" th:selected="${profile != null and profile.readingTextColor == '#4b3621' and profile.themePreference != 'theme-dark'}">Warm brown</option><option value="#f1f5f9" th:selected="${(profile != null and profile.readingTextColor == '#f1f5f9') or (profile != null and profile.themePreference == 'theme-dark')}">Soft white (dark theme)</option>
+                    </select>
+                </label>
+                <label class="reading-setting" for="settingTheme">Background theme
+                    <select id="settingTheme" name="themePreference">
+                        <option value="theme-offwhite" th:selected="${profile == null or profile.themePreference == null or profile.themePreference == 'theme-offwhite'}">Soft off-white</option><option value="theme-cream" th:selected="${profile != null and profile.themePreference == 'theme-cream'}">Warm cream</option><option value="theme-lavender" th:selected="${profile != null and profile.themePreference == 'theme-lavender'}">Gentle lavender</option><option value="theme-sky" th:selected="${profile != null and profile.themePreference == 'theme-sky'}">Sky blue</option><option value="theme-peach" th:selected="${profile != null and profile.themePreference == 'theme-peach'}">Soft peach</option><option value="theme-dark" th:selected="${profile != null and profile.themePreference == 'theme-dark'}">Dark contrast</option>
+                    </select>
+                </label>
+                <label class="reading-setting-check"><input type="checkbox" name="readingRulerEnabled" value="true" th:checked="${profile != null and profile.readingRulerEnabled}"> Show reading ruler</label>
+                <div class="reading-preview-wrap"><strong>Live preview</strong><p class="parent-section-sub">Changes appear here before you save.</p>
+                    <div id="readingPreview" class="reading-preview" th:style="|font-size:${profile != null and profile.fontSize != null ? profile.fontSize : 20}px;line-height:${profile != null and profile.lineSpacing != null ? profile.lineSpacing : 1.8};letter-spacing:${profile != null and profile.letterSpacing != null ? profile.letterSpacing : '0.06em'};color:${profile != null and profile.themePreference == 'theme-dark' ? '#f1f5f9' : (profile != null and profile.readingTextColor != null ? profile.readingTextColor : '#26364a')};font-family:${profile != null and profile.fontPreference == 'Lexend' ? 'Lexend, sans-serif' : (profile != null and profile.fontPreference == 'Comic Neue' ? 'Comic Neue, cursive' : (profile != null and profile.fontPreference == 'Arial' ? 'Arial, sans-serif' : 'OpenDyslexic, sans-serif'))};background:${profile != null and profile.themePreference == 'theme-cream' ? '#fff4dd' : (profile != null and profile.themePreference == 'theme-lavender' ? '#f4f0ff' : (profile != null and profile.themePreference == 'theme-sky' ? '#eaf6ff' : (profile != null and profile.themePreference == 'theme-peach' ? '#fff0e8' : (profile != null and profile.themePreference == 'theme-dark' ? '#202b3c' : '#fbfaf6'))))}|">A bright bird reads a gentle story.<br><br>Take your time and enjoy each word.<span id="previewRuler" class="preview-ruler" aria-hidden="true" th:style="${profile != null and profile.readingRulerEnabled ? 'display:block' : ''}"></span></div>
+                </div>
+                <button class="settings-save" type="submit">Save reading settings</button>
+            </form>
+        </section>
+
+        <div class="parent-grid">
+            <section class="parent-section" aria-labelledby="weekly-heading">
+                <h3 id="weekly-heading">Weekly progress</h3>
+                <p class="parent-section-sub">Reading and game time with the average score for each week.</p>
+                <div class="parent-weekly-list" role="list" aria-label="Eight-week learning progress">
+                    <div class="parent-week-row" role="listitem" th:each="week : ${weeklyProgress}"
+                         th:attr="aria-label=${week.label + ', ' + week.minutes + ' minutes, ' + week.accuracy + '% average score, ' + week.activities + ' activities'}">
+                        <strong class="parent-week-label" th:text="${week.label}">Week</strong>
+                        <div class="parent-week-track" aria-hidden="true"><span th:style="|width:${week.minutes * 100 / maxWeeklyMinutes}%;|"></span></div>
+                        <span class="parent-week-values"><strong th:text="${week.minutes + ' min'}">0 min</strong><small th:text="${week.activities > 0 ? week.accuracy + '% average' : 'No score'}">No score</small></span>
+                    </div>
+                </div>
+                <p class="parent-footer-note">Minutes are counted only where a reading or game duration was recorded.</p>
+            </section>
+            <section id="patterns" class="parent-section" aria-labelledby="patterns-heading">
+                <h3 id="patterns-heading">Reading patterns and difficult words</h3>
+                <p class="parent-section-sub">Practice observations from read-aloud tracking and speech word attempts.</p>
+                <ul class="insight-list" th:if="${!#lists.isEmpty(letterPatterns)}">
+                    <li th:each="pattern : ${letterPatterns}"><strong th:text="${pattern.pattern}">b/d</strong> appeared in <span th:text="${pattern.count}">0</span> recognized word differences</li>
+                </ul>
+                <div class="insight-empty" th:if="${#lists.isEmpty(letterPatterns)}">No letter-pair differences have been recorded yet.</div>
+                <h4 style="margin:1rem 0 .5rem;color:#334155">Words to revisit</h4>
+                <ul class="insight-list" th:if="${!#lists.isEmpty(difficultWords)}">
+                    <li th:each="word : ${difficultWords}"><strong th:text="${word.word}">word</strong> <span th:text="${word.count + ' practice flags'}">1 practice flag</span></li>
+                </ul>
+                <div class="insight-empty" th:if="${#lists.isEmpty(difficultWords)}">Words that were skipped, repeated, or recognized differently will appear here.</div>
+            </section>
+
+            <section id="activities" class="parent-section" aria-labelledby="activity-heading">
+                <h3 id="activity-heading">Completed activities</h3>
+                <p class="parent-section-sub">Choose a time period to review this child’s saved practice.</p>
+                <form class="activity-filters" th:action="@{/parent/dashboard}" method="get" aria-label="Filter completed activities">
+                    <input type="hidden" name="childId" th:value="${childId}">
+                    <button class="activity-filter" type="submit" name="activityPeriod" value="today" th:classappend="${activityPeriod == 'today' ? ' selected' : ''}" th:attr="aria-pressed=${activityPeriod == 'today'}">Today</button>
+                    <button class="activity-filter" type="submit" name="activityPeriod" value="yesterday" th:classappend="${activityPeriod == 'yesterday' ? ' selected' : ''}" th:attr="aria-pressed=${activityPeriod == 'yesterday'}">Yesterday</button>
+                    <button class="activity-filter" type="submit" name="activityPeriod" value="this-week" th:classappend="${activityPeriod == 'this-week' ? ' selected' : ''}" th:attr="aria-pressed=${activityPeriod == 'this-week'}">This week</button>
+                </form>
+                <h4 style="color:#334155;margin:.8rem 0 .2rem">Reading practice</h4>
+                <ul class="record-list" th:if="${!#lists.isEmpty(recentReading)}">
+                    <li th:each="readingEntry : ${recentReading}">
+                        <span class="record-main"><span class="record-title" th:text="${readingEntry.material.title}">Reading material</span><span class="record-detail" th:text="${readingEntry.durationSeconds / 60 + ' min · ' + readingEntry.wordsRead + ' words'}">0 min</span></span>
+                        <span class="record-score" th:text="${readingEntry.readingAccuracy != null ? readingEntry.readingAccuracy + '%' : 'Tracked time'}">Tracked time</span>
+                    </li>
+                </ul>
+                <p class="insight-empty" th:if="${#lists.isEmpty(recentReading)}">No reading practice in this period.</p>
+                <h4 style="color:#334155;margin:1rem 0 .2rem">Speech practice</h4>
+                <ul class="record-list" th:if="${!#lists.isEmpty(recentSpeech)}">
+                    <li th:each="attempt : ${recentSpeech}">
+                        <span class="record-main"><span class="record-title" th:text="${attempt.targetWord}">Practice word</span><span class="record-detail" th:text="${'Heard: ' + attempt.recognizedText}">Heard word</span></span>
+                        <span><span class="record-score" th:text="${attempt.accuracy + '%'}">0%</span><time class="record-date" th:text="${#temporals.format(attempt.completedAt, 'MMM d')}">Today</time></span>
+                    </li>
+                </ul>
+                <p class="insight-empty" th:if="${#lists.isEmpty(recentSpeech)}">No speech practice in this period.</p>
+                <h4 style="color:#334155;margin:1rem 0 .2rem">Games</h4>
+                <ul class="record-list" th:if="${!#lists.isEmpty(recentGames)}">
+                    <li th:each="game : ${recentGames}">
+                        <span class="record-main"><span class="record-title" th:text="${#strings.replace(game.gameCode, '_', ' ')}">Learning game</span><span class="record-detail" th:text="${'Level ' + game.difficultyLevel + ' · ' + game.score + ' points'}">Level</span></span>
+                        <span><span class="record-score" th:text="${game.accuracy + '%'}">0%</span><time class="record-date" th:text="${#temporals.format(game.completedAt, 'MMM d')}">Today</time></span>
+                    </li>
+                </ul>
+                <p class="insight-empty" th:if="${#lists.isEmpty(recentGames)}">No games completed in this period.</p>
+                <h4 style="color:#334155;margin:1rem 0 .2rem">Quizzes</h4>
+                <ul class="record-list" th:if="${!#lists.isEmpty(recentQuizzes)}">
+                    <li th:each="quiz : ${recentQuizzes}">
+                        <span class="record-main"><span class="record-title" th:text="${quiz.quiz.title}">Quiz</span><span class="record-detail" th:text="${quiz.score + ' of ' + quiz.totalQuestions + ' correct'}">0 correct</span></span>
+                        <span><span class="record-score" th:text="${quiz.percentage + '%'}">0%</span><time class="record-date" th:text="${#temporals.format(quiz.completedAt, 'MMM d')}">Today</time></span>
+                    </li>
+                </ul>
+                <p class="insight-empty" th:if="${#lists.isEmpty(recentQuizzes)}">No quizzes completed in this period.</p>
+            </section>
+
+            <section id="homework" class="parent-section" aria-labelledby="reminder-heading">
+                <h3 id="reminder-heading">Homework reminders</h3>
+                <p class="parent-section-sub">Add a due date to keep a planned practice activity visible here.</p>
+                <form class="reminder-form" method="post" th:action="@{/parent/children/{childId}/reminders(childId=${childId})}">
+                    <label class="sr-only" for="reminder-title">Activity or homework</label>
+                    <input id="reminder-title" name="title" maxlength="120" placeholder="Activity or homework" required>
+                    <label class="sr-only" for="reminder-date">Due date</label>
+                    <input id="reminder-date" type="date" name="dueDate" required>
+                    <label class="sr-only" for="reminder-note">Optional note</label>
+                    <textarea id="reminder-note" name="note" maxlength="500" placeholder="Optional note"></textarea>
+                    <button class="reminder-submit" type="submit">Add reminder</button>
+                </form>
+                <ul class="reminder-list" th:if="${!#lists.isEmpty(reminders)}">
+                    <li th:each="reminder : ${reminders}" th:class="${'reminder' + (reminder.overdue ? ' overdue' : '') + (reminder.completed ? ' done' : '')}">
+                        <span class="reminder-copy"><strong th:text="${reminder.title}">Read for 10 minutes</strong><small th:text="${'Due ' + #temporals.format(reminder.dueDate, 'MMM d, yyyy') + (reminder.overdue ? ' · Overdue' : '')}">Due date</small><p th:if="${!#strings.isEmpty(reminder.note)}" th:text="${reminder.note}">Note</p></span>
+                        <form method="post" th:action="@{/parent/reminders/{reminderId}/complete(reminderId=${reminder.id})}">
+                            <input type="hidden" name="completed" th:value="${!reminder.completed}">
+                            <button class="reminder-toggle" type="submit" th:text="${reminder.completed ? 'Reopen' : 'Mark done'}">Mark done</button>
+                        </form>
+                    </li>
+                </ul>
+                <div class="insight-empty" th:if="${#lists.isEmpty(reminders)}">No homework reminders yet.</div>
+                <p class="parent-footer-note">Reminders are private to your parent account and selected child.</p>
+            </section>
+
+            <section id="achievements" class="parent-section" style="grid-column:1/-1" aria-labelledby="achievement-heading">
+                <h3 id="achievement-heading">Achievements</h3>
+                <p class="parent-section-sub">Milestones unlock from completed activity records.</p>
+                <ul class="achievement-list">
+                    <li th:each="achievement : ${achievements}" th:class="${achievement.earned ? 'achievement earned' : 'achievement'}">
+                        <strong th:text="${achievement.title}">First story</strong><span th:text="${achievement.description}">Practice milestone</span>
+                        <small class="achievement-state" th:text="${achievement.earned ? 'Earned' : 'In progress'}">In progress</small>
+                    </li>
+                </ul>
+            </section>
+        </section>
+        <section class="parent-section" style="margin-top:1rem" aria-labelledby="next-heading">
+            <h3 id="next-heading">Ideas for your next session</h3>
+            <p class="parent-section-sub">Suggestions based on saved practice patterns.</p>
+            <ul class="recommend-list"><li th:each="tip : ${recommendations}" th:text="${tip}">Try a short reading activity.</li></ul>
+        </section>
+        <p class="parent-footer-note">Progress reflects saved LexiBridge activity. Reading and speech scores are practice measures, not a diagnosis.</p>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: appFooter}"></div>
+<script>
+    const settingsForm = document.getElementById('readingSettingsForm');
+    if (settingsForm) {
+        const preview = document.getElementById('readingPreview');
+        const font = document.getElementById('settingFont');
+        const size = document.getElementById('settingFontSize');
+        const line = document.getElementById('settingLineSpacing');
+        const spacing = document.getElementById('settingLetterSpacing');
+        const color = document.getElementById('settingTextColor');
+        const theme = document.getElementById('settingTheme');
+        const ruler = settingsForm.querySelector('[name="readingRulerEnabled"]');
+        const rulerPreview = document.getElementById('previewRuler');
+        const fontFamilies = {'OpenDyslexic': "'OpenDyslexic', 'Lexend', sans-serif", 'Lexend': "'Lexend', sans-serif", 'Comic Neue': "'Comic Neue', cursive", 'Arial': 'Arial, sans-serif'};
+        const backgrounds = {'theme-offwhite':'#fbfaf6','theme-cream':'#fff4dd','theme-lavender':'#f4f0ff','theme-sky':'#eaf6ff','theme-peach':'#fff0e8','theme-dark':'#202b3c'};
+        function updatePreview() {
+            if (theme.value === 'theme-dark' && color.value !== '#f1f5f9') color.value = '#f1f5f9';
+            if (theme.value !== 'theme-dark' && color.value === '#f1f5f9') color.value = '#26364a';
+            preview.style.fontFamily = fontFamilies[font.value];
+            preview.style.fontSize = `${size.value}px`;
+            document.getElementById('fontSizeOutput').value = `${size.value} px`;
+            document.getElementById('fontSizeOutput').textContent = `${size.value} px`;
+            preview.style.lineHeight = line.value;
+            preview.style.letterSpacing = spacing.value;
+            preview.style.color = color.value;
+            preview.style.backgroundColor = backgrounds[theme.value];
+            if (rulerPreview) rulerPreview.style.display = ruler.checked ? 'block' : 'none';
+        }
+        settingsForm.querySelectorAll('select, input').forEach(control => control.addEventListener('input', updatePreview));
+        settingsForm.querySelectorAll('select, input').forEach(control => control.addEventListener('change', updatePreview));
+        updatePreview();
+    }
+    const childPicker = document.getElementById('child-picker');
+    if (childPicker) childPicker.addEventListener('change', () => {
+        window.location.href = `/parent/dashboard?childId=${encodeURIComponent(childPicker.value)}`;
+    });
+</script>
+</body>
+</html>

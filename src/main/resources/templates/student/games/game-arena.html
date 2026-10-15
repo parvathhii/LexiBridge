@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>LexiBridge Game</title>
+    <link rel="stylesheet" th:href="@{/css/main.css(v='ui-20261015-3')}"/>
+    <style>
+        .arena-main { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem 2rem; width: 100%; flex: 1; }
+        .arena-header {
+            display: flex; align-items: center; gap: 1rem; padding: 1.35rem 1.6rem;
+            background: linear-gradient(135deg, #1e3a8a, #312e81); color: #fff;
+            border-radius: 18px; margin-bottom: 1.25rem; box-shadow: var(--shadow-lg);
+        }
+        .arena-header .back-btn {
+            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.24); border-radius: 10px;
+            padding: .55rem .9rem; cursor: pointer; font-size: .9rem; font-weight: 700;
+            color: #fff; text-decoration: none; white-space: nowrap; transition: background .2s;
+        }
+        .arena-header .back-btn:hover { background: rgba(255,255,255,.24); }
+        .arena-header h2 { margin: 0; font-size: 1.45rem; color: #fff; flex: 1; }
+        .arena-header .score-display { background: #38bdf8; color: #0f172a; padding: .45rem .85rem; border-radius: 999px; font-size: .9rem; font-weight: 700; }
+        .scoreboard { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+        .arena-level-picker { display:flex; align-items:center; gap:.65rem; flex-wrap:wrap; background:#fff; border:1px solid var(--border); padding:.7rem 1rem; border-radius:14px; margin-bottom:1rem; color:var(--text-secondary); }
+        .arena-level-picker select { font:600 .95rem var(--font-stack); border:1px solid #cbd5e1; border-radius:9px; padding:.45rem .65rem; color:var(--primary); background:#fff; }
+        .score-chip { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: .75rem 1rem; font-size: .9rem; font-weight: 600; color: var(--text-secondary); box-shadow: var(--shadow); text-align: center; }
+        .score-chip span { color: var(--primary); font-weight: 700; }
+        .timer-bar-wrap { background: #e2e8f0; border-radius: 50px; height: 9px; margin: 0 0 1rem; overflow: hidden; }
+        .timer-bar { height: 9px; border-radius: 50px; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width .1s linear; }
+        #game-container { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: clamp(1.25rem, 4vw, 2.5rem); min-height: 390px; box-shadow: var(--shadow); }
+        .game-prompt { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.65; margin: 0 auto 1.25rem; text-align: center; max-width: 720px; }
+        .btn-option { background: var(--lavender); border: 2px solid var(--lavender-border); border-radius: 12px; padding: .75rem 1.25rem; font: 700 1rem var(--font-stack); cursor: pointer; color: #3730a3; transition: background .2s, transform .15s, border-color .2s; margin: .3rem; }
+        .btn-option:hover:not(:disabled) { background: #ddd6fe; transform: translateY(-1px); }
+        .btn-option:disabled { cursor: default; opacity: .8; }
+        .btn-option.correct { background: var(--success-bg); border-color: #86efac; color: #166534; }
+        .btn-option.wrong { background: var(--error-bg); border-color: #fca5a5; color: #b91c1c; }
+        .btn-option:focus-visible, .word-tile:focus-visible, .btn-again:focus-visible, .btn-hub:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 3px; }
+        .spell-input { border: 2px solid #cbd5e1; border-radius: 12px; font: 600 1.5rem var(--font-stack); text-align: center; padding: .7rem 1rem; width: 100%; max-width: 360px; color: var(--text-primary); outline: none; transition: border-color .2s, box-shadow .2s; }
+        .spell-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
+        .word-display { font: 700 clamp(2rem, 7vw, 3rem) var(--font-stack); letter-spacing: .1em; color: var(--primary); text-align: center; margin: 1.25rem 0; }
+        .tiles-area { display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem; min-height: 60px; padding: 1rem; border-radius: 14px; background: #f8fafc; border: 2px dashed #cbd5e1; }
+        .word-tile { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: .55rem .9rem; font: 700 1rem var(--font-stack); cursor: pointer; color: var(--primary); box-shadow: 0 2px 5px rgba(15,23,42,.05); }
+        .word-tile:disabled { opacity: .45; cursor: default; }
+        .drop-zone { min-height: 56px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: .6rem; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin: .6rem 0; }
+        .drop-zone.dragover { background: var(--sky-muted); border-color: var(--sky-accent); }
+        .fluency-sentence { font: 500 1.5rem/2.2 var(--font-stack); text-align: center; color: var(--text-primary); }
+        .fluency-word { display: inline-block; padding: .1em .3em; border-radius: 6px; transition: background .15s; }
+        .fluency-word.active { background: #fef3c7; color: #78350f; }
+        .passage-text { font: 400 1.05rem/1.9 var(--font-stack); color: var(--text-primary); }
+        .err-word { cursor: pointer; border-bottom: 2px solid transparent; }
+        .err-word:hover { border-bottom-color: #f9a8d4; }
+        .err-word.found { background: #ffedd5; border-radius: 4px; color: #9a3412; }
+        .err-word.missed { background: #fef3c7; border-radius: 4px; }
+        .para-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: .7rem; font-size: 1rem; line-height: 1.7; color: var(--text-primary); }
+        .topic-chip { background: #fff; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: .65rem .9rem; margin: .3rem; font-size: .95rem; font-weight: 600; cursor: pointer; color: var(--primary); }
+        .topic-chip:hover { background: var(--lavender); border-color: var(--lavender-border); }
+        .result-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.58); z-index: 9999; align-items: center; justify-content: center; padding: 1rem; }
+        .result-overlay.active { display: flex; }
+        .result-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 2.25rem; max-width: 440px; width: 100%; text-align: center; box-shadow: var(--shadow-lg); animation: popIn .3s ease-out; }
+        @keyframes popIn { from { transform: translateY(10px) scale(.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        .result-box .big-emoji { font-size: 3.5rem; margin-bottom: .5rem; }
+        .result-box h2 { color: var(--primary); margin-bottom: .3rem; }
+        .result-box p { color: var(--text-secondary); line-height: 1.6; }
+        .result-box .score-big { font-size: 2.7rem; font-weight: 800; color: var(--primary); margin: .5rem 0; }
+        .result-btns { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.2rem; }
+        .btn-again, .btn-hub { border: 0; border-radius: 10px; padding: .75rem 1.15rem; font: 700 .95rem var(--font-stack); cursor: pointer; }
+        .btn-again { background: var(--primary); color: #fff; }
+        .btn-again:hover { background: #312e81; }
+        .btn-hub { background: var(--lavender); color: #4338ca; }
+        .btn-hub:hover { background: #ddd6fe; }
+        @media (max-width: 680px) {
+            .arena-main { margin-top: 1rem; padding: 0 1rem 1.5rem; }
+            .arena-header { align-items: flex-start; flex-wrap: wrap; padding: 1rem; gap: .75rem; }
+            .arena-header h2 { order: 3; flex-basis: 100%; font-size: 1.25rem; }
+            .arena-header .score-display { margin-left: auto; }
+            .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+            .score-chip { padding: .65rem .5rem; font-size: .82rem; }
+            #game-container { min-height: 340px; }
+            .result-box { padding: 1.5rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body class="theme-offwhite">
+<div th:replace="~{fragments/header :: appHeader('games')}"></div>
+
+<main class="arena-main">
+
+    <!-- Arena header -->
+    <div class="arena-header">
+        <a href="/student/games" class="back-btn">Games</a>
+        <h2 id="game-title">Loading game...</h2>
+        <div class="score-display">Score: <span id="header-score">0</span></div>
+    </div>
+
+    <div class="arena-level-picker">
+        <label for="arena-level">Practice level</label>
+        <select id="arena-level" th:attr="data-slug=${gameSlug}" th:value="${gameLevel}">
+            <option value="1" th:selected="${gameLevel == 1}">Level 1 · Starter</option>
+            <option value="2" th:selected="${gameLevel == 2}">Level 2 · Growing</option>
+            <option value="3" th:selected="${gameLevel == 3}" th:text="${gameSlug == 'word-builder' or gameSlug == 'syllable-switch' ? 'Level 3 - Hard' : 'Level 3 - Challenge'}">Level 3 - Challenge</option>
+        </select>
+        <span id="level-description">Rounds and time adjust to your level.</span>
+    </div>
+
+    <!-- Score board -->
+    <div class="scoreboard">
+        <div class="score-chip">Question <span id="q-current">1</span> / <span id="q-total">10</span></div>
+        <div class="score-chip">Correct: <span id="score-correct">0</span></div>
+        <div class="score-chip">Wrong: <span id="score-wrong">0</span></div>
+        <div class="score-chip">Time: <span id="timer-display">30</span>s</div>
+    </div>
+
+    <!-- Timer bar -->
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+
+    <!-- Game content is rendered here. -->
+    <div id="game-container"></div>
+
+</main>
+
+<!-- Result Modal -->
+<div class="result-overlay" id="result-overlay">
+    <div class="result-box">
+        <div class="big-emoji" id="result-emoji"></div>
+        <h2 id="result-title">Great job!</h2>
+        <p id="result-msg"></p>
+        <div class="score-big" id="result-score"></div>
+        <p id="result-save-status" role="status" aria-live="polite">Saving your score...</p>
+        <div class="result-btns">
+            <button class="btn-again" onclick="window.LB_GAME.restart()">Play Again</button>
+            <button class="btn-hub" onclick="window.location='/student/games'">Games</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pass the slug from Thymeleaf to JS -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.GAME_SLUG   = /*[[${gameSlug}]]*/ 'confusion-matrix';
+    window.GAME_LEVEL  = /*[[${gameLevel}]]*/ 1;
+    window.STUDENT_NAME= /*[[${user != null ? user.fullName : 'Student'}]]*/ 'Student';
+    /*]]>*/
+</script>
+<script>
+    document.getElementById('arena-level').addEventListener('change', function () {
+        window.location.href = '/student/games/' + encodeURIComponent(this.dataset.slug) + '?level=' + this.value;
+    });
+</script>
+<script th:src="@{/js/games/games.js(v='game-20261015-4')}"></script>
+<script th:src="@{/js/games/requested-games.js(v='game-20261015-6')}"></script>
+</body>
+</html>
+
+
