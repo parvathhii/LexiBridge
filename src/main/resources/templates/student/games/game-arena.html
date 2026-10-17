@@ -102,7 +102,7 @@
         <select id="arena-level" th:attr="data-slug=${gameSlug}" th:value="${gameLevel}">
             <option value="1" th:selected="${gameLevel == 1}">Level 1 · Starter</option>
             <option value="2" th:selected="${gameLevel == 2}">Level 2 · Growing</option>
-            <option value="3" th:selected="${gameLevel == 3}" th:text="${gameSlug == 'word-builder' or gameSlug == 'syllable-switch' ? 'Level 3 - Hard' : 'Level 3 - Challenge'}">Level 3 - Challenge</option>
+            <option value="3" th:selected="${gameLevel == 3}">Level 3 - Hard</option>
         </select>
         <span id="level-description">Rounds and time adjust to your level.</span>
     </div>
@@ -151,8 +151,8 @@
         window.location.href = '/student/games/' + encodeURIComponent(this.dataset.slug) + '?level=' + this.value;
     });
 </script>
-<script th:src="@{/js/games/games.js(v='game-20261015-4')}"></script>
-<script th:src="@{/js/games/requested-games.js(v='game-20261015-6')}"></script>
+<script th:src="@{/js/games/games.js(v='game-20261016-3')}"></script>
+<script th:src="@{/js/games/requested-games.js(v='game-20261016-2')}"></script>
 </body>
 </html>
 

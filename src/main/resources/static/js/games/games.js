@@ -60,10 +60,20 @@ function startTimer(secs, onExpire){
 function stopTimer(){ clearInterval(state.timerID); state.timerID = null; }
 
 /* â”€â”€ Result Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+function calculateAccuracyPercent(correctAnswers, totalQuestions){
+    var total = Number(totalQuestions);
+    if(!Number.isFinite(total) || total <= 0) return 0;
+    total = Math.floor(total);
+    var correct = Number(correctAnswers);
+    correct = Number.isFinite(correct) ? Math.max(0, Math.min(total, Math.floor(correct))) : 0;
+    return Math.round((correct / total) * 100);
+}
+
 function showResult(){
+    if(state.finished) return;
     stopTimer();
     state.finished = true;
-    var pct = state.qTotal > 0 ? Math.round((state.correct / state.qTotal) * 100) : 0;
+    var pct = calculateAccuracyPercent(state.correct, state.qTotal);
     document.getElementById("result-emoji").textContent = "";
     $('result-title').textContent   = pct >= 80 ? 'Excellent!' : pct >= 50 ? 'Good job!' : 'Keep going!';
     $('result-msg').textContent     = state.correct + ' / ' + state.qTotal + ' correct  (' + pct + '%)';
@@ -163,6 +173,20 @@ function speakWord(word){
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
 }
+var wdWords = [
+    {display:'sunset', correct:2},
+    {display:'rabbit', correct:2},
+    {display:'banana', correct:3},
+    {display:'elephant', correct:3},
+    {display:'computer', correct:3},
+    {display:'butterfly', correct:3},
+    {display:'fantastic', correct:3},
+    {display:'dinosaur', correct:3},
+    {display:'helicopter', correct:4},
+    {display:'caterpillar', correct:4},
+    {display:'watermelon', correct:4},
+    {display:'celebration', correct:4}
+];
 function wordDecode(){
     setTitle('Word Deconstruction');
     wdQueue = wdWords.slice().sort(function(){ return Math.random()-.5; });

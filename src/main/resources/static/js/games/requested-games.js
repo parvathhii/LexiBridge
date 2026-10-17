@@ -1,6 +1,10 @@
 /* Four additional dyslexia-friendly games, loaded after games.js. */
 (function () {
+    var activeRoundScored = false;
+
     function finishRound(correct, feedbackId, renderNext) {
+        if (activeRoundScored || state.finished) return;
+        activeRoundScored = true;
         stopTimer();
         if (correct) state.correct++; else state.wrong++;
         var feedback = $(feedbackId);
@@ -27,6 +31,7 @@
     function letterDetective() { setTitle('Letter Detective'); setQTotal(letterRounds.length); renderLetter(); }
     function renderLetter() {
         if (state.qIndex >= state.qTotal) return showResult();
+        activeRoundScored = false;
         var item = letterRounds[state.qIndex];
         setContainer('<p class="game-prompt">Choose the letter that completes this word.</p><div class="word-display" aria-live="polite">'+item.word+'</div>'
             +'<div style="text-align:center">'+item.choices.map(function (letter) { return '<button class="btn-option" type="button" style="font-size:2.2rem;min-width:90px" data-choice="'+letter+'">'+letter+'</button>'; }).join('')+'</div>'
@@ -49,6 +54,7 @@
     function wordBuilder() { setTitle('Word Builder'); setQTotal(buildWords.length); renderWord(); }
     function renderWord() {
         if (state.qIndex >= state.qTotal) return showResult();
+        activeRoundScored = false;
         var item = buildWords[state.qIndex];
         setContainer('<p class="game-prompt">Put these letters in order to make a word.</p><div class="word-display" aria-label="Scrambled letters">'+item.letters+'</div>'
             +'<div style="text-align:center"><label for="build-answer" class="game-prompt">Your word</label><br><input id="build-answer" class="spell-input" autocomplete="off" autocapitalize="none" aria-describedby="build-hint-text build-feedback">'
@@ -74,6 +80,7 @@
     function syllableSwitch() { setTitle('Syllable Switch'); setQTotal(syllableChallenges.length); renderSyllable(); }
     function renderSyllable() {
         if (state.qIndex >= state.qTotal) return showResult();
+        activeRoundScored = false;
         var item = syllableChallenges[state.qIndex], selected = [];
         setContainer('<p class="game-prompt">Put the syllable chunks in order to build the word that matches the clue.</p>'
             +'<p class="game-prompt"><strong>Clue:</strong> '+item.clue+'</p>'
@@ -110,6 +117,7 @@
     function wordPartsQuest() { setTitle('Word Parts Quest'); setQTotal(wordPartRounds.length); renderWordParts(); }
     function renderWordParts() {
         if (state.qIndex >= state.qTotal) return showResult();
+        activeRoundScored = false;
         var item = wordPartRounds[state.qIndex];
         setContainer('<p class="game-prompt">Use the word parts to solve the clue. Listen or ask for a hint if you need help.</p>'
             +'<div class="word-display" aria-label="Root word">'+item.root+'</div>'
@@ -127,5 +135,39 @@
     GAME_MAP['letter-detective'] = letterDetective;
     GAME_MAP['word-builder'] = wordBuilder;
     GAME_MAP['syllable-switch'] = syllableSwitch;
+    var deconstructionWords = [
+        {word:'sunset', syllables:2}, {word:'rabbit', syllables:2},
+        {word:'banana', syllables:3}, {word:'elephant', syllables:3},
+        {word:'computer', syllables:3}, {word:'butterfly', syllables:3},
+        {word:'fantastic', syllables:3}, {word:'dinosaur', syllables:3},
+        {word:'helicopter', syllables:4}, {word:'caterpillar', syllables:4},
+        {word:'watermelon', syllables:4}, {word:'celebration', syllables:4}
+    ];
+    function wordDeconstruction() {
+        setTitle('Word Deconstruction');
+        setQTotal(deconstructionWords.length);
+        renderDeconstruction();
+    }
+    function renderDeconstruction() {
+        if (state.qIndex >= state.qTotal) return showResult();
+        activeRoundScored = false;
+        var item = deconstructionWords[state.qIndex];
+        var choices = [1, 2, 3, 4, 5].map(function (count) {
+            return '<button class="btn-option" type="button" data-syllable-count="'+count+'">'+count+'</button>';
+        }).join('');
+        setContainer('<p class="game-prompt">Read the word and choose how many syllables you hear.</p>'
+            +'<div class="word-display" aria-live="polite">'+item.word+'</div>'
+            +'<p class="game-prompt">Tap the syllable count:</p>'
+            +'<div style="text-align:center">'+choices+'</div>'
+            +'<p id="deconstruction-feedback" role="status" aria-live="polite"></p>');
+        gc().querySelectorAll('[data-syllable-count]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                finishRound(Number(button.dataset.syllableCount) === item.syllables, 'deconstruction-feedback', renderDeconstruction);
+            });
+        });
+        updateBoard();
+        startTimer(20, function () { finishRound(false, 'deconstruction-feedback', renderDeconstruction); });
+    }
     GAME_MAP['word-parts-quest'] = wordPartsQuest;
+    GAME_MAP['word-decode'] = wordDeconstruction;
 })();

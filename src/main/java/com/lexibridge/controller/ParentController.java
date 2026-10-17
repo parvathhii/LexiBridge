@@ -157,7 +157,7 @@ public class ParentController {
         speech.stream().filter(a -> a.getAccuracy() < 100).forEach(a -> wordCounts.merge(a.getTargetWord(), 1, Integer::sum));
         List<Map<String, Object>> difficultWords = wordCounts.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
-                .limit(8).map(e -> Map.<String, Object>of("word", e.getKey(), "count", e.getValue())).toList();
+                .limit(5).map(e -> Map.<String, Object>of("word", e.getKey(), "count", e.getValue())).toList();
         List<Map<String, Object>> letterPatterns = pairCounts.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .map(e -> Map.<String, Object>of("pattern", e.getKey(), "count", e.getValue())).toList();
